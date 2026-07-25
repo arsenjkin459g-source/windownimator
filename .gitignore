@@ -1,0 +1,10 @@
+# Ignore build artifacts and cache
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
+*.spec
+*.wa
+.idea/
+.vscode/
