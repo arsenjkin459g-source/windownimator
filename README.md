@@ -2,6 +2,8 @@
 
 # Windownimator 2.0
 
+![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
+
 Windownimator 2.0 — приложение для создания анимаций из системных окон Windows (`MessageBoxW`).
 
 Окна перемещаются по экрану по ключевым кадрам с использованием функций сглаживания (easing), воспроизводят звуки и экспортируются в автономные `.exe` файлы.
