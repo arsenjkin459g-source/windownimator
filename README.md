@@ -2,7 +2,7 @@
 
 # Windownimator 2.0
 
-![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue)
+![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue) ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)
 
 Windownimator 2.0 — приложение для создания анимаций из системных окон Windows (`MessageBoxW`).
 
