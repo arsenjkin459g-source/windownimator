@@ -1,3 +1,5 @@
+![README](assets/readme_header.jpg)
+
 # Windownimator 2.0
 
 Windownimator 2.0 — приложение для создания анимаций из системных окон Windows (`MessageBoxW`).
