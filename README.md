@@ -1,10 +1,14 @@
 # 🎬 Windownimator 2.0 (PySide6 Edition)
 
+![Windownimator Banner](assets/banner.jpg)
+
 **Windownimator 2.0** — уникальный аниматор для Windows, позволяющий создавать анимационные ролики из настоящих системных окон Windows (`MessageBoxW`). 
 
 Окна плавно перемещаются по экрану по ключевым кадрам с использованием функций сглаживания (easing), воспроизводят звуки и экспортируются в автономные `.exe` файлы.
 
 ---
+
+![Windownimator Features](assets/features.jpg)
 
 ## 🌟 Основные возможности
 
