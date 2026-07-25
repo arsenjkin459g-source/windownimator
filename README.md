@@ -39,19 +39,18 @@
 
 ---
 
-## 🚀 Сборка и запуск (.exe)
+## 🚀 Запуск (.exe)
+
+Скачайте готовый `Windownimator.exe` со страницы **[Releases](../../releases)** и запустите его.
+
+### Сборка из исходников:
 
 ```bash
 # Клонирование репозитория
 git clone https://github.com/arsenjkin459g-source/windownimator.git
 cd windownimator
 
-# Установка зависимостей
+# Установка зависимостей и сборка
 pip install PySide6 pygame-ce pyinstaller
-
-# Сборка в один .exe файл
 pyinstaller --onefile --noconsole --name=Windownimator main.py
-
-# Запуск готового EXE
-./dist/Windownimator.exe
 ```
