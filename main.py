@@ -1,6 +1,5 @@
 """
-Windownimator 2.0 — PySide6 Main Application Window
-Modern, responsive Qt interface replacing Tkinter / CustomTkinter.
+Windownimator — Main Application Window
 """
 
 from __future__ import annotations
@@ -30,7 +29,7 @@ from ui.window_list import QtWindowListPanel
 from ui.properties import QtPropertiesPanel
 
 APP_TITLE = "Windownimator"
-APP_VERSION = ""
+APP_VERSION = "1.0.0"
 
 
 # ── Export Dialog ─────────────────────────────────────────────────────────────
