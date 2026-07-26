@@ -75,9 +75,22 @@ THEMES = {
     },
 }
 
+CURRENT_THEME_KEY = "navy"
+
+
+def set_current_theme(key: str):
+    global CURRENT_THEME_KEY
+    if key in THEMES:
+        CURRENT_THEME_KEY = key
+
+
+def get_current_theme() -> dict:
+    return THEMES.get(CURRENT_THEME_KEY, THEMES["navy"])
+
 
 def get_theme_qss(theme_key: str = "navy") -> str:
-    t = THEMES.get(theme_key, THEMES["navy"])
+    set_current_theme(theme_key)
+    t = get_current_theme()
     return f"""
 QWidget {{
     color: {t['text']};
@@ -87,18 +100,25 @@ QWidget {{
     selection-color: #ffffff;
 }}
 
-QMainWindow, QSplitter {{
-    background-color: transparent;
+QMainWindow, QSplitter, QDialog, QMessageBox {{
+    background-color: {t['bg_dark']};
 }}
 
 QLabel {{
     background-color: transparent;
+    color: {t['text']};
 }}
 
 /* Menubar */
 QMenuBar {{
     background-color: {t['bg_dark']};
     color: {t['text']};
+    border-bottom: 1px solid {t['border']};
+}}
+
+QMenuBar::item {{
+    background-color: transparent;
+    padding: 6px 12px;
 }}
 
 QMenuBar::item:selected {{
@@ -110,6 +130,10 @@ QMenu {{
     background-color: {t['bg_dark']};
     color: {t['text']};
     border: 1px solid {t['border_input']};
+}}
+
+QMenu::item {{
+    padding: 6px 20px;
 }}
 
 QMenu::item:selected {{
@@ -145,6 +169,10 @@ QToolButton:pressed {{
 }}
 
 /* Cards & Frames */
+QFrame, QGroupBox {{
+    background-color: {t['bg_dark']};
+}}
+
 QFrame.panelFrame {{
     background-color: {t['bg_dark']};
     border: 1px solid {t['border']};
@@ -161,6 +189,12 @@ QFrame.card:hover {{
     border-color: {t['accent']};
 }}
 
+/* ScrollArea */
+QScrollArea, QScrollArea > QWidget > QWidget {{
+    background-color: {t['bg_dark']};
+    border: none;
+}}
+
 /* Input Fields */
 QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {{
     background-color: {t['bg_input']};
@@ -170,7 +204,7 @@ QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {{
     color: {t['text']};
 }}
 
-QLineEdit:focus, QTextEdit:focus, QComboBox:focus {{
+QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {{
     border: 1px solid {t['accent']};
     background-color: {t['bg_dark']};
 }}

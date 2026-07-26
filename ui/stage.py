@@ -196,16 +196,20 @@ class QtStage(QGraphicsView):
         outer_bg.setZValue(-102)
         self.scene.addItem(outer_bg)
 
-        # Virtual Display Boundary (Inner 1920x1080 blurred glass area)
+        from ui.styles import get_current_theme
+
+        t = get_current_theme()
+
+        # Canvas Border (Virtual Screen Outline)
         border_item = QGraphicsRectItem(0, 0, STAGE_W, STAGE_H)
-        border_item.setPen(QPen(QColor("#38bdf8"), 2, Qt.PenStyle.DashLine))
+        border_item.setPen(QPen(QColor(t["accent"]), 2, Qt.PenStyle.DashLine))
         border_item.setBrush(QBrush(QColor(15, 23, 42, 40)))
         border_item.setZValue(-100)
         self.scene.addItem(border_item)
 
         # Label
         text_item = QGraphicsTextItem(f"Virtual Screen Resolution: {STAGE_W} x {STAGE_H} px")
-        text_item.setDefaultTextColor(QColor("#475569"))
+        text_item.setDefaultTextColor(QColor(t["text_muted"]))
         text_item.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         text_item.setPos(20, 20)
         text_item.setZValue(-99)

@@ -315,7 +315,6 @@ class MainWindow(QMainWindow):
 
     def _build_menubar(self):
         menubar = self.menuBar()
-        menubar.setStyleSheet("background-color: #0f172a; color: #f8fafc;")
 
         # File Menu
         file_menu = menubar.addMenu("Файл")
@@ -344,6 +343,8 @@ class MainWindow(QMainWindow):
     def _set_theme(self, theme_key: str):
         qss = get_theme_qss(theme_key)
         QApplication.instance().setStyleSheet(qss)
+        self.menuBar().setStyleSheet("")
+        self._refresh_all()
 
 
 
