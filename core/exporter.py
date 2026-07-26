@@ -241,15 +241,45 @@ def export_to_exe(
         if on_progress:
             on_progress("📝 Скрипт создан...")
 
-        cmd = [
-            sys.executable, "-m", "PyInstaller",
-            "--onefile", "--noconsole", "--clean",
-            f"--name={exe_name}",
-            f"--distpath={output_dir}",
-            f"--workpath={os.path.join(build_dir, 'build')}",
-            f"--specpath={build_dir}",
-            runner_path,
-        ]
+        if getattr(sys, "frozen", False):
+            # Running inside compiled Windownimator.exe -> do NOT use sys.executable (which is Windownimator.exe)
+            pyinstaller_bin = shutil.which("pyinstaller") or shutil.which("pyinstaller.exe")
+            python_bin = shutil.which("python") or shutil.which("python.exe") or shutil.which("py")
+            if pyinstaller_bin:
+                cmd = [
+                    pyinstaller_bin,
+                    "--onefile", "--noconsole", "--clean",
+                    f"--name={exe_name}",
+                    f"--distpath={output_dir}",
+                    f"--workpath={os.path.join(build_dir, 'build')}",
+                    f"--specpath={build_dir}",
+                    runner_path,
+                ]
+            elif python_bin:
+                cmd = [
+                    python_bin, "-m", "PyInstaller",
+                    "--onefile", "--noconsole", "--clean",
+                    f"--name={exe_name}",
+                    f"--distpath={output_dir}",
+                    f"--workpath={os.path.join(build_dir, 'build')}",
+                    f"--specpath={build_dir}",
+                    runner_path,
+                ]
+            else:
+                raise RuntimeError(
+                    "Утилита PyInstaller не найдена в системной переменной PATH.\n"
+                    "Для экспорта из скомпилированной версии убедитесь, что в системе установлен Python и PyInstaller."
+                )
+        else:
+            cmd = [
+                sys.executable, "-m", "PyInstaller",
+                "--onefile", "--noconsole", "--clean",
+                f"--name={exe_name}",
+                f"--distpath={output_dir}",
+                f"--workpath={os.path.join(build_dir, 'build')}",
+                f"--specpath={build_dir}",
+                runner_path,
+            ]
 
         if on_progress:
             on_progress("⚙️ Компиляция EXE (подождите)...")
