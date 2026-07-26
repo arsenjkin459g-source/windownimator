@@ -4,6 +4,10 @@
 
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) ![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue) ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white) ![Status Beta](https://img.shields.io/badge/Status-Beta--v1.0.0-orange?style=for-the-badge) ![BSD-3-Clause](https://img.shields.io/badge/BSD--3--Clause-green?style=for-the-badge)
 
+> [!WARNING]
+> **ВНИМАНИЕ: БЕТА-ВЕРСИЯ (v1.0.0 Beta)**
+> Проект находится на стадии публичного бета-тестирования. Возможны обновляемые доработки и изменения функционала.
+
 Windownimator — приложение для создания анимаций из системных окон Windows (`MessageBoxW`).
 
 Окна перемещаются по экрану по ключевым кадрам с использованием функций сглаживания (easing), воспроизводят звуки и экспортируются в автономные `.exe` файлы.
