@@ -16,8 +16,6 @@ if TYPE_CHECKING:
     from core.animation import Animation
     from core.keyframe import Keyframe
 
-from ui.styles import get_current_theme
-
 EASING_SHORT = {
     "linear":      "—",
     "ease_in":     "▶",
@@ -42,9 +40,8 @@ class KeyframeCard(QFrame):
         self.setObjectName("kfCard")
 
         # Dynamic Styling
-        t = get_current_theme()
-        bg_col = t["accent"] if selected else t["bg_card"]
-        border_col = t["accent_hover"] if selected else t["border_input"]
+        bg_col = "#2563eb" if selected else "#1e293b"
+        border_col = "#60a5fa" if selected else "#334155"
         self.setStyleSheet(f"""
             QFrame#kfCard {{
                 background-color: {bg_col};
@@ -52,7 +49,7 @@ class KeyframeCard(QFrame):
                 border-radius: 10px;
             }}
             QFrame#kfCard:hover {{
-                border-color: {t['accent']};
+                border-color: #3b82f6;
             }}
             QFrame#kfCard QLabel {{
                 background-color: transparent;

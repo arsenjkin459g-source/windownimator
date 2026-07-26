@@ -22,7 +22,7 @@ from core.window_object import WindowObject
 from core.player import AnimationPlayer
 from core.exporter import export_to_exe
 
-from ui.styles import DARK_THEME_QSS, THEMES, get_theme_qss
+from ui.styles import DARK_THEME_QSS
 from ui.stage import QtStage
 from ui.timeline import QtTimeline
 from ui.window_list import QtWindowListPanel
@@ -333,18 +333,7 @@ class MainWindow(QMainWindow):
         proj_menu.addSeparator()
         proj_menu.addAction("Экспорт в EXE...", lambda: ExportDialog(self, self.animation).exec())
 
-        # View / Theme Menu
-        view_menu = menubar.addMenu("Вид")
-        theme_menu = view_menu.addMenu("Тема оформления")
-        for key, theme_info in THEMES.items():
-            act = theme_menu.addAction(theme_info["name"])
-            act.triggered.connect(lambda checked=False, k=key: self._set_theme(k))
 
-    def _set_theme(self, theme_key: str):
-        qss = get_theme_qss(theme_key)
-        QApplication.instance().setStyleSheet(qss)
-        self.menuBar().setStyleSheet("")
-        self._refresh_all()
 
 
 

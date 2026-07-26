@@ -16,8 +16,6 @@ if TYPE_CHECKING:
     from core.animation import Animation
     from core.window_object import WindowObject
 
-from ui.styles import get_current_theme
-
 ICON_SYMBOLS = {
     "info":     "ℹ️",
     "warning":  "⚠️",
@@ -36,9 +34,8 @@ class WindowListItemWidget(QFrame):
         self.win_obj = win_obj
         self.setObjectName("winItem")
 
-        t = get_current_theme()
-        bg_col = t["bg_card"] if is_selected else t["bg_dark"]
-        border_col = t["accent"] if is_selected else t["border_input"]
+        bg_col = "#1e293b" if is_selected else "#0f172a"
+        border_col = "#3b82f6" if is_selected else "#1e293b"
 
         self.setStyleSheet(f"""
             QFrame#winItem {{
@@ -47,7 +44,7 @@ class WindowListItemWidget(QFrame):
                 border-radius: 8px;
             }}
             QFrame#winItem:hover {{
-                border-color: {t['accent']};
+                border-color: #3b82f6;
             }}
             QFrame#winItem QLabel {{
                 background-color: transparent;
