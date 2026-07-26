@@ -100,8 +100,18 @@ QWidget {{
     selection-color: #ffffff;
 }}
 
-QMainWindow, QSplitter, QDialog, QMessageBox {{
+QMainWindow, QSplitter {{
+    background-color: transparent;
+}}
+
+QDialog, QMessageBox {{
     background-color: {t['bg_dark']};
+}}
+
+QGraphicsView, QtStage {{
+    background-color: transparent;
+    background: transparent;
+    border: none;
 }}
 
 QLabel {{

@@ -185,27 +185,36 @@ class QtStage(QGraphicsView):
         self._draw_stage_background()
 
     def _draw_stage_background(self):
-        # Outer Solid Mask (covers everything outside 1920x1080 virtual screen with solid dark color)
+        from ui.styles import get_current_theme
+
+        t = get_current_theme()
+
+        # Outer Solid Mask (covers everything outside 1920x1080 virtual screen with theme dark color)
         outer_path = QPainterPath()
         outer_path.addRect(-5000, -5000, 12000, 12000)
         outer_path.addRect(0, 0, STAGE_W, STAGE_H)
 
         outer_bg = QGraphicsPathItem(outer_path)
         outer_bg.setPen(Qt.PenStyle.NoPen)
-        outer_bg.setBrush(QBrush(QColor("#070a13")))
+        outer_bg.setBrush(QBrush(QColor(t["bg_dark"])))
         outer_bg.setZValue(-102)
         self.scene.addItem(outer_bg)
-
-        from ui.styles import get_current_theme
-
-        t = get_current_theme()
 
         # Canvas Border (Virtual Screen Outline)
         border_item = QGraphicsRectItem(0, 0, STAGE_W, STAGE_H)
         border_item.setPen(QPen(QColor(t["accent"]), 2, Qt.PenStyle.DashLine))
-        border_item.setBrush(QBrush(QColor(15, 23, 42, 40)))
+        border_item.setBrush(QBrush(QColor(0, 0, 0, 0)))
         border_item.setZValue(-100)
         self.scene.addItem(border_item)
+
+        # Grid lines (frosted glass layout grid)
+        grid_pen = QPen(QColor(255, 255, 255, 12), 1, Qt.PenStyle.DotLine)
+        for x in range(100, STAGE_W, 100):
+            line = self.scene.addLine(x, 0, x, STAGE_H, grid_pen)
+            line.setZValue(-101)
+        for y in range(100, STAGE_H, 100):
+            line = self.scene.addLine(0, y, STAGE_W, y, grid_pen)
+            line.setZValue(-101)
 
         # Label
         text_item = QGraphicsTextItem(f"Virtual Screen Resolution: {STAGE_W} x {STAGE_H} px")
