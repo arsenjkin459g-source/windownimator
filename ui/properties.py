@@ -174,8 +174,8 @@ class QtPropertiesPanel(QWidget):
         self.tabs = QTabWidget()
 
         # --- Window Tab ---
-        win_tab = QWidget()
-        win_layout = QVBoxLayout(win_tab)
+        self._win_tab = QWidget()
+        win_layout = QVBoxLayout(self._win_tab)
         win_layout.setContentsMargins(12, 12, 12, 12)
         win_layout.setSpacing(10)
 
@@ -247,12 +247,12 @@ class QtPropertiesPanel(QWidget):
         self._win_scroll = QScrollArea()
         self._win_scroll.setWidgetResizable(True)
         self._win_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self._win_scroll.setWidget(win_tab)
+        self._win_scroll.setWidget(self._win_tab)
         self.tabs.addTab(self._win_scroll, "Окно")
 
         # --- Keyframe Tab ---
-        kf_tab = QWidget()
-        kf_layout = QVBoxLayout(kf_tab)
+        self._kf_tab = QWidget()
+        kf_layout = QVBoxLayout(self._kf_tab)
         kf_layout.setContentsMargins(12, 12, 12, 12)
         kf_layout.setSpacing(10)
 
@@ -293,7 +293,7 @@ class QtPropertiesPanel(QWidget):
         self._kf_scroll = QScrollArea()
         self._kf_scroll.setWidgetResizable(True)
         self._kf_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        self._kf_scroll.setWidget(kf_tab)
+        self._kf_scroll.setWidget(self._kf_tab)
         self.tabs.addTab(self._kf_scroll, "Кадр")
 
         layout.addWidget(self.tabs)
@@ -308,17 +308,24 @@ class QtPropertiesPanel(QWidget):
 
     def update_theme(self):
         t = get_current_theme()
+        self.setStyleSheet(f"background-color: {t['bg_dark']};")
         self._hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
         self._title_lbl.setStyleSheet(f"color: {t['text_muted']}; letter-spacing: 1px;")
         self.tabs.setStyleSheet(f"""
-            QTabWidget::pane {{ border: none; background: {t['bg_dark']}; }}
-            QTabBar {{ background: {t['bg_dark']}; }}
-            QTabBar::tab {{ background: {t['bg_input']}; padding: 8px 16px; color: {t['text_muted']}; border: none; }}
-            QTabBar::tab:selected {{ background: {t['bg_dark']}; color: {t['accent']}; font-weight: bold; }}
+            QTabWidget {{ background-color: {t['bg_dark']}; background: {t['bg_dark']}; border: none; }}
+            QTabWidget::pane {{ border: none; background-color: {t['bg_dark']}; background: {t['bg_dark']}; }}
+            QTabWidget::tab-bar {{ left: 0px; background-color: {t['bg_dark']}; background: {t['bg_dark']}; }}
+            QTabBar {{ background-color: {t['bg_dark']}; background: {t['bg_dark']}; }}
+            QTabBar::tab {{ background-color: {t['bg_input']}; padding: 8px 16px; color: {t['text_muted']}; border: none; }}
+            QTabBar::tab:selected {{ background-color: {t['bg_dark']}; color: {t['accent']}; font-weight: bold; }}
         """)
-        scroll_qss = f"QScrollArea {{ background: {t['bg_dark']}; border: none; }}"
+        scroll_qss = f"QScrollArea {{ background: {t['bg_dark']}; background-color: {t['bg_dark']}; border: none; }}"
         self._win_scroll.setStyleSheet(scroll_qss)
         self._kf_scroll.setStyleSheet(scroll_qss)
+        if hasattr(self, '_win_tab'):
+            self._win_tab.setStyleSheet(f"background-color: {t['bg_dark']};")
+        if hasattr(self, '_kf_tab'):
+            self._kf_tab.setStyleSheet(f"background-color: {t['bg_dark']};")
         for lbl in self._section_labels:
             lbl.setStyleSheet(f"color: {t['accent']}; background: transparent; border: none; padding: 2px 0px; margin: 0px; letter-spacing: 1px;")
         self.preview_widget.setStyleSheet(f"background-color: {t['bg_input']}; border: 1px solid {t['border_input']}; border-radius: 6px;")
