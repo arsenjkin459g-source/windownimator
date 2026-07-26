@@ -52,26 +52,26 @@ class EasingPreviewWidget(QWidget):
         self.morph_anim.setEndValue(1.0)
         self.morph_anim.valueChanged.connect(self._on_morph_step)
 
-        # Ball/Dot Loop Animation (moves along the curve)
+        # Ball/Dot Loop Animation (moves along the curve continuously)
         self.dot_anim = QVariantAnimation(self)
         self.dot_anim.setDuration(1200)
         self.dot_anim.setStartValue(0.0)
         self.dot_anim.setEndValue(1.0)
+        self.dot_anim.setLoopCount(-1)
         self.dot_anim.valueChanged.connect(self._on_dot_step)
+        self.dot_anim.start()
 
     def set_easing(self, easing: str):
-        if easing == self.new_easing and self.morph_progress >= 1.0:
+        target = easing if easing else "ease_in_out"
+        if target == self.new_easing and self.morph_progress >= 1.0:
             return
 
         self.old_easing = self.new_easing
-        self.new_easing = easing
+        self.new_easing = target
         self.morph_progress = 0.0
 
         self.morph_anim.stop()
         self.morph_anim.start()
-
-        self.dot_anim.stop()
-        self.dot_anim.start()
 
     def _on_morph_step(self, val):
         self.morph_progress = float(val)
