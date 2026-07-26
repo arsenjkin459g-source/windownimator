@@ -344,6 +344,14 @@ class MainWindow(QMainWindow):
         qss = get_theme_qss(theme_key)
         QApplication.instance().setStyleSheet(qss)
         self.menuBar().setStyleSheet("")
+        # Update all panel structural styles
+        self.win_list_panel.update_theme()
+        self.timeline.update_theme()
+        self.props.update_theme()
+        # Redraw stage background with new theme colors
+        self.stage.scene.clear()
+        self.stage._items_map.clear()
+        self.stage._draw_stage_background()
         self._refresh_all()
 
 

@@ -130,45 +130,70 @@ class QtWindowListPanel(QWidget):
         layout.setSpacing(0)
 
         # Header
-        hdr = QWidget()
-        hdr.setFixedHeight(36)
-        t = get_current_theme()
-        hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
-        hdr_layout = QHBoxLayout(hdr)
+        self._hdr = QWidget()
+        self._hdr.setFixedHeight(36)
+        hdr_layout = QHBoxLayout(self._hdr)
         hdr_layout.setContentsMargins(12, 0, 12, 0)
 
-        title = QLabel("СПИСОК ОКОН")
-        title.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        title.setStyleSheet("color: #94a3b8; letter-spacing: 1px;")
-        hdr_layout.addWidget(title)
+        self._title_lbl = QLabel("СПИСОК ОКОН")
+        self._title_lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        hdr_layout.addWidget(self._title_lbl)
 
         hdr_layout.addStretch()
         self.count_lbl = QLabel("0")
         self.count_lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        self.count_lbl.setStyleSheet(f"color: {t['accent']};")
         hdr_layout.addWidget(self.count_lbl)
 
-        layout.addWidget(hdr)
+        layout.addWidget(self._hdr)
 
         # Quick Add Strip
-        add_strip = QWidget()
-        add_strip.setStyleSheet(f"background-color: {t['bg_input']}; border-bottom: 1px solid {t['border']};")
-        add_layout = QVBoxLayout(add_strip)
+        self._add_strip = QWidget()
+        add_layout = QVBoxLayout(self._add_strip)
         add_layout.setContentsMargins(10, 8, 10, 8)
         add_layout.setSpacing(6)
 
-        lbl_add = QLabel("Быстрое добавление:")
-        lbl_add.setFont(QFont("Segoe UI", 8))
-        lbl_add.setStyleSheet("color: #64748b;")
-        add_layout.addWidget(lbl_add)
+        self._lbl_add = QLabel("Быстрое добавление:")
+        self._lbl_add.setFont(QFont("Segoe UI", 8))
+        add_layout.addWidget(self._lbl_add)
 
         btn_row = QHBoxLayout()
         btn_row.setSpacing(6)
 
+        self._quick_btns = []
         quick_types = [("ℹ️ Info", "info"), ("⚠️ Warn", "warning"), ("❌ Error", "error"), ("❓ Quest", "question")]
         for label, icon_type in quick_types:
             btn = QPushButton(label)
             btn.setFont(QFont("Segoe UI", 9))
+            btn.clicked.connect(lambda _, t=icon_type: self.add_window_requested.emit(t))
+            btn_row.addWidget(btn)
+            self._quick_btns.append(btn)
+
+        add_layout.addLayout(btn_row)
+        layout.addWidget(self._add_strip)
+
+        # Scroll Area for List
+        self._scroll = QScrollArea()
+        self._scroll.setWidgetResizable(True)
+
+        self.list_container = QWidget()
+        self.list_layout = QVBoxLayout(self.list_container)
+        self.list_layout.setContentsMargins(8, 8, 8, 8)
+        self.list_layout.setSpacing(6)
+        self.list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self._scroll.setWidget(self.list_container)
+        layout.addWidget(self._scroll)
+
+        self.update_theme()
+
+    def update_theme(self):
+        t = get_current_theme()
+        self._hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
+        self._title_lbl.setStyleSheet(f"color: {t['text_muted']}; letter-spacing: 1px;")
+        self.count_lbl.setStyleSheet(f"color: {t['accent']};")
+        self._add_strip.setStyleSheet(f"background-color: {t['bg_input']}; border-bottom: 1px solid {t['border']};")
+        self._lbl_add.setStyleSheet(f"color: {t['text_muted']};")
+        for btn in self._quick_btns:
             btn.setStyleSheet(f"""
                 QPushButton {{
                     background-color: {t['bg_card']};
@@ -182,26 +207,8 @@ class QtWindowListPanel(QWidget):
                     color: white;
                 }}
             """)
-            btn.clicked.connect(lambda _, t=icon_type: self.add_window_requested.emit(t))
-            btn_row.addWidget(btn)
-
-        add_layout.addLayout(btn_row)
-        layout.addWidget(add_strip)
-
-        # Scroll Area for List
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setStyleSheet(f"QScrollArea {{ background-color: {t['bg_input']}; border: none; }}")
-
-        self.list_container = QWidget()
+        self._scroll.setStyleSheet(f"QScrollArea {{ background-color: {t['bg_input']}; border: none; }}")
         self.list_container.setStyleSheet(f"background-color: {t['bg_input']};")
-        self.list_layout = QVBoxLayout(self.list_container)
-        self.list_layout.setContentsMargins(8, 8, 8, 8)
-        self.list_layout.setSpacing(6)
-        self.list_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        scroll.setWidget(self.list_container)
-        layout.addWidget(scroll)
 
     def refresh(self, animation: Optional["Animation"] = None, selected_id: Optional[str] = None):
         if animation is not None:

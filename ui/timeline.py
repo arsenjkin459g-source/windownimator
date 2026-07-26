@@ -126,44 +126,48 @@ class QtTimeline(QWidget):
         main_layout.setSpacing(0)
 
         # Header Info Strip
-        hdr = QWidget()
-        hdr.setFixedHeight(28)
-        t = get_current_theme()
-        hdr.setStyleSheet(f"background-color: {t['bg_input']}; border-top: 1px solid {t['border']};")
-        hdr_layout = QHBoxLayout(hdr)
+        self._hdr = QWidget()
+        self._hdr.setFixedHeight(28)
+        hdr_layout = QHBoxLayout(self._hdr)
         hdr_layout.setContentsMargins(12, 0, 12, 0)
 
-        title = QLabel("ТАЙМЛАЙН КЛЮЧЕВЫХ КАДРОВ")
-        title.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        title.setStyleSheet("color: #64748b; letter-spacing: 1px;")
-        hdr_layout.addWidget(title)
+        self._title_lbl = QLabel("ТАЙМЛАЙН КЛЮЧЕВЫХ КАДРОВ")
+        self._title_lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+        hdr_layout.addWidget(self._title_lbl)
 
         hdr_layout.addStretch()
 
         self.info_lbl = QLabel("0 кадров")
         self.info_lbl.setFont(QFont("Segoe UI", 9))
-        self.info_lbl.setStyleSheet("color: #94a3b8;")
         hdr_layout.addWidget(self.info_lbl)
 
-        main_layout.addWidget(hdr)
+        main_layout.addWidget(self._hdr)
 
         # Scroll Area for Cards
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setStyleSheet(f"QScrollArea {{ background-color: {t['bg_input']}; border: none; }}")
+        self._scroll = QScrollArea()
+        self._scroll.setWidgetResizable(True)
+        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self._scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
 
         self.container = QWidget()
-        self.container.setStyleSheet(f"background-color: {t['bg_input']};")
         self.card_layout = QHBoxLayout(self.container)
         self.card_layout.setContentsMargins(12, 8, 12, 8)
         self.card_layout.setSpacing(12)
         self.card_layout.setSizeConstraint(QHBoxLayout.SizeConstraint.SetMinAndMaxSize)
 
-        scroll.setWidget(self.container)
-        scroll.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
-        main_layout.addWidget(scroll)
+        self._scroll.setWidget(self.container)
+        self._scroll.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        main_layout.addWidget(self._scroll)
+
+        self.update_theme()
+
+    def update_theme(self):
+        t = get_current_theme()
+        self._hdr.setStyleSheet(f"background-color: {t['bg_input']}; border-top: 1px solid {t['border']};")
+        self._title_lbl.setStyleSheet(f"color: {t['text_muted']}; letter-spacing: 1px;")
+        self.info_lbl.setStyleSheet(f"color: {t['text_muted']};")
+        self._scroll.setStyleSheet(f"QScrollArea {{ background-color: {t['bg_input']}; border: none; }}")
+        self.container.setStyleSheet(f"background-color: {t['bg_input']};")
 
     def refresh(self, animation: Optional["Animation"] = None, selected_id: Optional[str] = None):
         if animation is not None:

@@ -157,27 +157,21 @@ class QtPropertiesPanel(QWidget):
         layout.setSpacing(0)
 
         # Header
-        hdr = QWidget()
-        hdr.setFixedHeight(36)
-        t = get_current_theme()
-        hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
-        hdr_layout = QHBoxLayout(hdr)
+        self._hdr = QWidget()
+        self._hdr.setFixedHeight(36)
+        hdr_layout = QHBoxLayout(self._hdr)
         hdr_layout.setContentsMargins(12, 0, 12, 0)
 
-        title = QLabel("СВОЙСТВА")
-        title.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
-        title.setStyleSheet("color: #94a3b8; letter-spacing: 1px;")
-        hdr_layout.addWidget(title)
+        self._title_lbl = QLabel("СВОЙСТВА")
+        self._title_lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        hdr_layout.addWidget(self._title_lbl)
 
-        layout.addWidget(hdr)
+        layout.addWidget(self._hdr)
+
+        self._section_labels = []
 
         # Tabs
         self.tabs = QTabWidget()
-        self.tabs.setStyleSheet(f"""
-            QTabWidget::pane {{ border: none; background: {t['bg_dark']}; }}
-            QTabBar::tab {{ background: {t['bg_input']}; padding: 8px 16px; color: {t['text_muted']}; border: none; }}
-            QTabBar::tab:selected {{ background: {t['bg_dark']}; color: {t['accent']}; font-weight: bold; }}
-        """)
 
         # --- Window Tab ---
         win_tab = QWidget()
@@ -250,12 +244,11 @@ class QtPropertiesPanel(QWidget):
 
         win_layout.addStretch()
 
-        win_scroll = QScrollArea()
-        win_scroll.setWidgetResizable(True)
-        win_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        win_scroll.setStyleSheet("QScrollArea { background: #0f172a; border: none; }")
-        win_scroll.setWidget(win_tab)
-        self.tabs.addTab(win_scroll, "Окно")
+        self._win_scroll = QScrollArea()
+        self._win_scroll.setWidgetResizable(True)
+        self._win_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._win_scroll.setWidget(win_tab)
+        self.tabs.addTab(self._win_scroll, "Окно")
 
         # --- Keyframe Tab ---
         kf_tab = QWidget()
@@ -297,20 +290,38 @@ class QtPropertiesPanel(QWidget):
 
         kf_layout.addStretch()
 
-        kf_scroll = QScrollArea()
-        kf_scroll.setWidgetResizable(True)
-        kf_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        kf_scroll.setStyleSheet(f"QScrollArea {{ background: {t['bg_dark']}; border: none; }}")
-        kf_scroll.setWidget(kf_tab)
-        self.tabs.addTab(kf_scroll, "Кадр")
+        self._kf_scroll = QScrollArea()
+        self._kf_scroll.setWidgetResizable(True)
+        self._kf_scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self._kf_scroll.setWidget(kf_tab)
+        self.tabs.addTab(self._kf_scroll, "Кадр")
 
         layout.addWidget(self.tabs)
+
+        self.update_theme()
 
     def _create_section_lbl(self, text: str) -> QLabel:
         lbl = QLabel(text)
         lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        lbl.setStyleSheet(f"color: {get_current_theme()['accent']}; background: transparent; border: none; padding: 2px 0px; margin: 0px; letter-spacing: 1px;")
+        self._section_labels.append(lbl)
         return lbl
+
+    def update_theme(self):
+        t = get_current_theme()
+        self._hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
+        self._title_lbl.setStyleSheet(f"color: {t['text_muted']}; letter-spacing: 1px;")
+        self.tabs.setStyleSheet(f"""
+            QTabWidget::pane {{ border: none; background: {t['bg_dark']}; }}
+            QTabBar::tab {{ background: {t['bg_input']}; padding: 8px 16px; color: {t['text_muted']}; border: none; }}
+            QTabBar::tab:selected {{ background: {t['bg_dark']}; color: {t['accent']}; font-weight: bold; }}
+        """)
+        scroll_qss = f"QScrollArea {{ background: {t['bg_dark']}; border: none; }}"
+        self._win_scroll.setStyleSheet(scroll_qss)
+        self._kf_scroll.setStyleSheet(scroll_qss)
+        for lbl in self._section_labels:
+            lbl.setStyleSheet(f"color: {t['accent']}; background: transparent; border: none; padding: 2px 0px; margin: 0px; letter-spacing: 1px;")
+        self.preview_widget.setStyleSheet(f"background-color: {t['bg_input']}; border: 1px solid {t['border_input']}; border-radius: 6px;")
+        self.preview_widget.update()
 
     def load_window(self, win: Optional["WindowObject"]):
         self._win = win
