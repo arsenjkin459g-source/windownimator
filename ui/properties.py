@@ -37,20 +37,11 @@ class EasingPreviewWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setFixedHeight(80)
-        self.old_easing = "ease_in_out"
-        self.new_easing = "ease_in_out"
-        self.morph_progress = 1.0  # 0.0 to 1.0
+        self.current_easing = "ease_in_out"
         self.dot_progress = 0.0    # 0.0 to 1.0 (moving dot)
 
         _t = get_current_theme()
         self.setStyleSheet(f"background-color: {_t['bg_input']}; border: 1px solid {_t['border_input']}; border-radius: 6px;")
-
-        # Morph Animation (smooth transition between curves)
-        self.morph_anim = QVariantAnimation(self)
-        self.morph_anim.setDuration(400)
-        self.morph_anim.setStartValue(0.0)
-        self.morph_anim.setEndValue(1.0)
-        self.morph_anim.valueChanged.connect(self._on_morph_step)
 
         # Ball/Dot Loop Animation (moves along the curve continuously)
         self.dot_anim = QVariantAnimation(self)
@@ -63,19 +54,9 @@ class EasingPreviewWidget(QWidget):
 
     def set_easing(self, easing: str):
         target = easing if easing else "ease_in_out"
-        if target == self.new_easing and self.morph_progress >= 1.0:
-            return
-
-        self.old_easing = self.new_easing
-        self.new_easing = target
-        self.morph_progress = 0.0
-
-        self.morph_anim.stop()
-        self.morph_anim.start()
-
-    def _on_morph_step(self, val):
-        self.morph_progress = float(val)
-        self.update()
+        if target != self.current_easing:
+            self.current_easing = target
+            self.update()
 
     def _on_dot_step(self, val):
         self.dot_progress = float(val)
@@ -97,22 +78,16 @@ class EasingPreviewWidget(QWidget):
 
         try:
             from core.tweener import EASING_FUNCS
-            fn_old = EASING_FUNCS.get(self.old_easing, EASING_FUNCS["ease_in_out"])
-            fn_new = EASING_FUNCS.get(self.new_easing, EASING_FUNCS["ease_in_out"])
+            fn = EASING_FUNCS.get(self.current_easing, EASING_FUNCS["ease_in_out"])
 
             steps = 80
             prev_point = None
-            alpha = self.morph_progress
 
-            # Current active interpolated curve function
-            def interpolated_fn(t):
-                return fn_old(t) * (1.0 - alpha) + fn_new(t) * alpha
-
-            # Draw Morphing Curve
+            # Draw Curve
             painter.setPen(QPen(QColor(_t["accent"]), 2.5))
             for i in range(steps + 1):
                 t = i / steps
-                v = interpolated_fn(t)
+                v = fn(t)
                 x = pad + t * (w - 2 * pad)
                 y = (h - pad) - v * (h - 2 * pad)
 
@@ -123,7 +98,7 @@ class EasingPreviewWidget(QWidget):
 
             # Draw Animated Ball along current curve
             t_ball = self.dot_progress
-            v_ball = interpolated_fn(t_ball)
+            v_ball = fn(t_ball)
             bx = pad + t_ball * (w - 2 * pad)
             by = (h - pad) - v_ball * (h - 2 * pad)
 
