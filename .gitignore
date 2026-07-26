@@ -1,10 +1,43 @@
-# Ignore build artifacts and cache
+# Byte-compiled / optimized / DLL files
 __pycache__/
-*.pyc
-*.pyo
+*.py[cod]
+*$py.class
+
+# PyInstaller / Build artifacts
 build/
 dist/
 *.spec
+*.exe
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Testing & Cache directories
+.pytest_cache/
+.mypy_cache/
+
+# Temporary data dumps, payload files & scratch scripts
+b1.txt
+b2.txt
+banner_b64.txt
+features_b64.txt
+compressed_payload.json
+push_payload.json
+test_move.py
+
+# User sample animation project files
 *.wa
-.idea/
+
+# IDEs and Editors
 .vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating System files
+.DS_Store
+Thumbs.db
+desktop.ini
