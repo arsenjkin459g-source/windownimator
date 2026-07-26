@@ -398,7 +398,7 @@ class QtPropertiesPanel(QWidget):
 
         self.tabs.setCurrentIndex(1)
 
-    def _on_win_changed(self):
+    def _on_win_changed(self, *args):
         if self._updating or not self._win:
             return
         self._win.name = self.name_edit.text()
@@ -419,7 +419,7 @@ class QtPropertiesPanel(QWidget):
 
         self.window_changed.emit()
 
-    def _on_kf_changed(self):
+    def _on_kf_changed(self, *args):
         if self._updating or not self._kf:
             return
         self._kf.duration_ms = self.dur_spin.value()
@@ -427,6 +427,13 @@ class QtPropertiesPanel(QWidget):
         self._kf.label = self.label_edit.text()
         self._kf.easing = self.easing_combo.currentData()
         self.preview_widget.set_easing(self._kf.easing)
+
+        if self._win:
+            st = self._kf.get_state(self._win.id)
+            win_eas = st.easing or ""
+            active_eas = win_eas if win_eas else self._kf.easing
+            self.win_preview_widget.set_easing(active_eas)
+
         self.keyframe_changed.emit()
 
     def _browse_sound(self):
