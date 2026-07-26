@@ -435,11 +435,12 @@ class QtPropertiesPanel(QWidget):
         self._win.sound_path = self.snd_edit.text().strip() or None
         self._win.sound_start_kf_index = max(0, self.snd_start_spin.value() - 1)
 
+        eas = self.win_easing_combo.currentData()
         if self._kf:
-            eas = self.win_easing_combo.currentData()
             self._kf.get_state(self._win.id).easing = eas if eas else None
-            active_eas = eas if eas else self._kf.easing
-            self.win_preview_widget.set_easing(active_eas)
+
+        active_eas = eas if eas else (self._kf.easing if self._kf else "ease_in_out")
+        self.win_preview_widget.set_easing(active_eas)
 
         self.window_changed.emit()
 
