@@ -347,7 +347,7 @@ class MainWindow(QMainWindow):
         # Update all panel structural styles
         self.win_list_panel.update_theme()
         self.timeline.update_theme()
-        self.props.update_theme()
+        self.properties_panel.update_theme()
         # Redraw stage background with new theme colors
         self.stage.scene.clear()
         self.stage._items_map.clear()
