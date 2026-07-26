@@ -132,7 +132,8 @@ class QtWindowListPanel(QWidget):
         # Header
         hdr = QWidget()
         hdr.setFixedHeight(36)
-        hdr.setStyleSheet("background-color: #0f172a; border-bottom: 1px solid #1e293b;")
+        t = get_current_theme()
+        hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
         hdr_layout = QHBoxLayout(hdr)
         hdr_layout.setContentsMargins(12, 0, 12, 0)
 
@@ -151,7 +152,7 @@ class QtWindowListPanel(QWidget):
 
         # Quick Add Strip
         add_strip = QWidget()
-        add_strip.setStyleSheet("background-color: #0b0d19; border-bottom: 1px solid #1e293b;")
+        add_strip.setStyleSheet(f"background-color: {t['bg_input']}; border-bottom: 1px solid {t['border']};")
         add_layout = QVBoxLayout(add_strip)
         add_layout.setContentsMargins(10, 8, 10, 8)
         add_layout.setSpacing(6)
@@ -168,18 +169,18 @@ class QtWindowListPanel(QWidget):
         for label, icon_type in quick_types:
             btn = QPushButton(label)
             btn.setFont(QFont("Segoe UI", 9))
-            btn.setStyleSheet("""
-                QPushButton {
-                    background-color: #1e293b;
-                    border: 1px solid #334155;
+            btn.setStyleSheet(f"""
+                QPushButton {{
+                    background-color: {t['bg_card']};
+                    border: 1px solid {t['border_input']};
                     border-radius: 6px;
                     padding: 5px 8px;
-                }
-                QPushButton:hover {
-                    background-color: #3b82f6;
-                    border-color: #60a5fa;
+                }}
+                QPushButton:hover {{
+                    background-color: {t['accent']};
+                    border-color: {t['accent_hover']};
                     color: white;
-                }
+                }}
             """)
             btn.clicked.connect(lambda _, t=icon_type: self.add_window_requested.emit(t))
             btn_row.addWidget(btn)
@@ -190,10 +191,10 @@ class QtWindowListPanel(QWidget):
         # Scroll Area for List
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setStyleSheet("QScrollArea { background-color: #0b0d19; border: none; }")
+        scroll.setStyleSheet(f"QScrollArea {{ background-color: {t['bg_input']}; border: none; }}")
 
         self.list_container = QWidget()
-        self.list_container.setStyleSheet("background-color: #0b0d19;")
+        self.list_container.setStyleSheet(f"background-color: {t['bg_input']};")
         self.list_layout = QVBoxLayout(self.list_container)
         self.list_layout.setContentsMargins(8, 8, 8, 8)
         self.list_layout.setSpacing(6)

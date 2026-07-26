@@ -140,7 +140,9 @@ class WindowCardItem(QGraphicsItem):
 
     def contextMenuEvent(self, event):
         menu = QMenu()
-        menu.setStyleSheet("QMenu { background-color: #0f172a; color: #f8fafc; border: 1px solid #334155; }")
+        from ui.styles import get_current_theme
+        _t = get_current_theme()
+        menu.setStyleSheet(f"QMenu {{ background-color: {_t['bg_dark']}; color: {_t['text']}; border: 1px solid {_t['border_input']}; }}")
         
         # ── TODO: [FEATURE NOTE FOR FUTURE] ──────────────────────────────────────────
         # Функция "Скрыть в кадре" (WindowState.visible = False) удалена по запросу пользователя.

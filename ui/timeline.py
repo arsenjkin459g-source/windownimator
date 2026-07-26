@@ -128,7 +128,8 @@ class QtTimeline(QWidget):
         # Header Info Strip
         hdr = QWidget()
         hdr.setFixedHeight(28)
-        hdr.setStyleSheet("background-color: #090d16; border-top: 1px solid #1e293b;")
+        t = get_current_theme()
+        hdr.setStyleSheet(f"background-color: {t['bg_input']}; border-top: 1px solid {t['border']};")
         hdr_layout = QHBoxLayout(hdr)
         hdr_layout.setContentsMargins(12, 0, 12, 0)
 
@@ -151,10 +152,10 @@ class QtTimeline(QWidget):
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
         scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setStyleSheet("QScrollArea { background-color: #0b0d19; border: none; }")
+        scroll.setStyleSheet(f"QScrollArea {{ background-color: {t['bg_input']}; border: none; }}")
 
         self.container = QWidget()
-        self.container.setStyleSheet("background-color: #0b0d19;")
+        self.container.setStyleSheet(f"background-color: {t['bg_input']};")
         self.card_layout = QHBoxLayout(self.container)
         self.card_layout.setContentsMargins(12, 8, 12, 8)
         self.card_layout.setSpacing(12)
@@ -196,7 +197,7 @@ class QtTimeline(QWidget):
             if i < len(self._animation.keyframes) - 1:
                 arr_lbl = QLabel(f"➔\n{kf.duration_ms}ms")
                 arr_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-                arr_lbl.setStyleSheet("color: #3b82f6;")
+                arr_lbl.setStyleSheet(f"color: {get_current_theme()['accent']};")
                 arr_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.card_layout.addWidget(arr_lbl)
 
@@ -204,17 +205,18 @@ class QtTimeline(QWidget):
         add_btn = QPushButton("＋")
         add_btn.setFixedSize(60, 95)
         add_btn.setFont(QFont("Segoe UI", 22, QFont.Weight.Bold))
-        add_btn.setStyleSheet("""
-            QPushButton {
-                background-color: #0f172a;
-                border: 2px dashed #3b82f6;
+        _t = get_current_theme()
+        add_btn.setStyleSheet(f"""
+            QPushButton {{
+                background-color: {_t['bg_dark']};
+                border: 2px dashed {_t['accent']};
                 border-radius: 10px;
-                color: #3b82f6;
-            }
-            QPushButton:hover {
-                background-color: #1e293b;
-                color: #60a5fa;
-            }
+                color: {_t['accent']};
+            }}
+            QPushButton:hover {{
+                background-color: {_t['bg_card']};
+                color: {_t['accent_hover']};
+            }}
         """)
         add_btn.clicked.connect(self.add_keyframe_requested.emit)
         self.card_layout.addWidget(add_btn)
@@ -226,7 +228,8 @@ class QtTimeline(QWidget):
 
     def _show_context_menu(self, kf_id: str, pos):
         menu = QMenu(self)
-        menu.setStyleSheet("QMenu { background-color: #0f172a; color: #f8fafc; border: 1px solid #334155; }")
+        _t = get_current_theme()
+        menu.setStyleSheet(f"QMenu {{ background-color: {_t['bg_dark']}; color: {_t['text']}; border: 1px solid {_t['border_input']}; }}")
         
         del_act = menu.addAction("Удалить кадр")
         dup_act = menu.addAction("Дублировать")

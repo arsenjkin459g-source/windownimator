@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from core.window_object import WindowObject
     from core.keyframe import Keyframe
 
+from ui.styles import get_current_theme
+
 ICON_OPTIONS = [("ℹ️  Информация", "info"), ("⚠️  Предупреждение", "warning"),
                 ("❌  Ошибка", "error"), ("❓  Вопрос", "question"), ("🪟  Без иконки", "none")]
 BTN_OPTIONS  = [("OK", "ok"), ("OK / Отмена", "okcancel"), ("Да / Нет", "yesno"),
@@ -39,7 +41,8 @@ class EasingPreviewWidget(QWidget):
         self.morph_progress = 1.0  # 0.0 to 1.0
         self.dot_progress = 0.0    # 0.0 to 1.0 (moving dot)
 
-        self.setStyleSheet("background-color: #020617; border: 1px solid #1e293b; border-radius: 6px;")
+        _t = get_current_theme()
+        self.setStyleSheet(f"background-color: {_t['bg_input']}; border: 1px solid {_t['border_input']}; border-radius: 6px;")
 
         # Morph Animation (smooth transition between curves)
         self.morph_anim = QVariantAnimation(self)
@@ -154,7 +157,8 @@ class QtPropertiesPanel(QWidget):
         # Header
         hdr = QWidget()
         hdr.setFixedHeight(36)
-        hdr.setStyleSheet("background-color: #0f172a; border-bottom: 1px solid #1e293b;")
+        t = get_current_theme()
+        hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
         hdr_layout = QHBoxLayout(hdr)
         hdr_layout.setContentsMargins(12, 0, 12, 0)
 
@@ -167,10 +171,10 @@ class QtPropertiesPanel(QWidget):
 
         # Tabs
         self.tabs = QTabWidget()
-        self.tabs.setStyleSheet("""
-            QTabWidget::pane { border: none; background: #0f172a; }
-            QTabBar::tab { background: #0b0d19; padding: 8px 16px; color: #94a3b8; border: none; }
-            QTabBar::tab:selected { background: #0f172a; color: #38bdf8; font-weight: bold; }
+        self.tabs.setStyleSheet(f"""
+            QTabWidget::pane {{ border: none; background: {t['bg_dark']}; }}
+            QTabBar::tab {{ background: {t['bg_input']}; padding: 8px 16px; color: {t['text_muted']}; border: none; }}
+            QTabBar::tab:selected {{ background: {t['bg_dark']}; color: {t['accent']}; font-weight: bold; }}
         """)
 
         # --- Window Tab ---
