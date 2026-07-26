@@ -185,20 +185,24 @@ class QtStage(QGraphicsView):
         self._draw_stage_background()
 
     def _draw_stage_background(self):
-        # Outer Solid Mask (covers everything outside 1920x1080 virtual screen with solid dark color)
+        from ui.styles import get_current_theme
+
+        t = get_current_theme()
+
+        # Outer Solid Mask (covers everything outside 1920x1080 virtual screen with theme dark color)
         outer_path = QPainterPath()
         outer_path.addRect(-5000, -5000, 12000, 12000)
         outer_path.addRect(0, 0, STAGE_W, STAGE_H)
 
         outer_bg = QGraphicsPathItem(outer_path)
         outer_bg.setPen(Qt.PenStyle.NoPen)
-        outer_bg.setBrush(QBrush(QColor("#070a13")))
+        outer_bg.setBrush(QBrush(QColor(t["bg_dark"])))
         outer_bg.setZValue(-102)
         self.scene.addItem(outer_bg)
 
         # Canvas Border (Virtual Screen Outline)
         border_item = QGraphicsRectItem(0, 0, STAGE_W, STAGE_H)
-        border_item.setPen(QPen(QColor("#38bdf8"), 2, Qt.PenStyle.DashLine))
+        border_item.setPen(QPen(QColor(t["accent"]), 2, Qt.PenStyle.DashLine))
         border_item.setBrush(QBrush(QColor(0, 0, 0, 0)))
         border_item.setZValue(-100)
         self.scene.addItem(border_item)
@@ -214,7 +218,7 @@ class QtStage(QGraphicsView):
 
         # Label
         text_item = QGraphicsTextItem(f"Virtual Screen Resolution: {STAGE_W} x {STAGE_H} px")
-        text_item.setDefaultTextColor(QColor("#475569"))
+        text_item.setDefaultTextColor(QColor(t["text_muted"]))
         text_item.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
         text_item.setPos(20, 20)
         text_item.setZValue(-99)
