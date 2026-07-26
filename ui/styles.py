@@ -199,12 +199,64 @@ QScrollArea, QScrollArea > QWidget > QWidget {{
 }}
 
 /* Input Fields */
-QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox, QDoubleSpinBox, QComboBox {{
+QLineEdit, QTextEdit, QPlainTextEdit, QComboBox {{
     background-color: {t['bg_input']};
     border: 1px solid {t['border_input']};
     border-radius: 6px;
     padding: 6px 10px;
     color: {t['text']};
+}}
+
+QSpinBox, QDoubleSpinBox {{
+    background-color: {t['bg_input']};
+    border: 1px solid {t['border_input']};
+    border-radius: 6px;
+    padding-top: 4px;
+    padding-bottom: 4px;
+    padding-left: 8px;
+    padding-right: 24px;
+    color: {t['text']};
+}}
+
+QSpinBox::up-button, QDoubleSpinBox::up-button {{
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 22px;
+    height: 13px;
+    border-left: 1px solid {t['border_input']};
+    border-bottom: 1px solid {t['border_input']};
+    background-color: {t['bg_card']};
+    border-top-right-radius: 5px;
+}}
+
+QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover {{
+    background-color: {t['accent']};
+}}
+
+QSpinBox::up-arrow, QDoubleSpinBox::up-arrow {{
+    image: url("assets/arrow_up.svg");
+    width: 10px;
+    height: 10px;
+}}
+
+QSpinBox::down-button, QDoubleSpinBox::down-button {{
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 22px;
+    height: 13px;
+    border-left: 1px solid {t['border_input']};
+    background-color: {t['bg_card']};
+    border-bottom-right-radius: 5px;
+}}
+
+QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover {{
+    background-color: {t['accent']};
+}}
+
+QSpinBox::down-arrow, QDoubleSpinBox::down-arrow {{
+    image: url("assets/arrow_down.svg");
+    width: 10px;
+    height: 10px;
 }}
 
 QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {{

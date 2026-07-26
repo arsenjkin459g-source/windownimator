@@ -123,6 +123,13 @@ class WindowCardItem(QGraphicsItem):
         painter.drawText(QRectF(14, CARD_H - 28, CARD_W - 28, 22), Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignVCenter, self.win_obj.name)
         painter.drawText(QRectF(14, CARD_H - 28, CARD_W - 28, 22), Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter, f"{int(self.pos().x())},{int(self.pos().y())}")
 
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        if event.button() == Qt.MouseButton.LeftButton:
+            is_ctrl = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+            self.stage_view.window_move_started.emit(self.win_obj.id)
+            self.stage_view.window_selected_ctrl.emit(self.win_obj.id, is_ctrl)
+
     def itemChange(self, change, value):
         if change == QGraphicsItem.GraphicsItemChange.ItemPositionChange:
             new_pos = value
@@ -135,6 +142,8 @@ class WindowCardItem(QGraphicsItem):
             return QPointF(x, y)
         elif change == QGraphicsItem.GraphicsItemChange.ItemSelectedChange:
             if value is True:
+                is_ctrl = bool(QApplication.keyboardModifiers() & Qt.KeyboardModifier.ControlModifier)
+                self.stage_view.window_selected_ctrl.emit(self.win_obj.id, is_ctrl)
                 self.stage_view.window_selected.emit(self.win_obj.id)
         return super().itemChange(change, value)
 
@@ -164,8 +173,10 @@ class WindowCardItem(QGraphicsItem):
 class QtStage(QGraphicsView):
     """Interactive Qt Virtual Stage."""
 
-    window_selected = Signal(str)  # win_id
-    window_moved    = Signal(str, int, int)  # win_id, x, y
+    window_selected      = Signal(str)  # win_id
+    window_selected_ctrl = Signal(str, bool)  # win_id, is_ctrl
+    window_move_started  = Signal(str)  # win_id
+    window_moved         = Signal(str, int, int)  # win_id, x, y
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -218,14 +229,6 @@ class QtStage(QGraphicsView):
             line = self.scene.addLine(0, y, STAGE_W, y, grid_pen)
             line.setZValue(-101)
 
-        # Label
-        text_item = QGraphicsTextItem(f"Virtual Screen Resolution: {STAGE_W} x {STAGE_H} px")
-        text_item.setDefaultTextColor(QColor(t["text_muted"]))
-        text_item.setFont(QFont("Segoe UI", 14, QFont.Weight.Bold))
-        text_item.setPos(20, 20)
-        text_item.setZValue(-99)
-        self.scene.addItem(text_item)
-
     def load(self, animation: "Animation", keyframe: Optional["Keyframe"]):
         self._animation = animation
         self._keyframe = keyframe
@@ -253,9 +256,16 @@ class QtStage(QGraphicsView):
         self.fitInView(0, 0, STAGE_W, STAGE_H, Qt.AspectRatioMode.KeepAspectRatio)
 
     def set_selected_window(self, win_id: Optional[str]):
+        self.set_selected_windows([win_id] if win_id else [])
+
+    def set_selected_windows(self, selected_ids: Union[None, str, List[str]]):
+        self.scene.blockSignals(True)
         self.scene.clearSelection()
-        if win_id and win_id in self._items_map:
-            self._items_map[win_id].setSelected(True)
+        ids = selected_ids if isinstance(selected_ids, list) else ([selected_ids] if selected_ids else [])
+        for wid in ids:
+            if wid in self._items_map:
+                self._items_map[wid].setSelected(True)
+        self.scene.blockSignals(False)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)

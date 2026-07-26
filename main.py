@@ -8,12 +8,13 @@ import sys
 import ctypes
 from typing import Optional
 
-from PySide6.QtCore import Qt, QThread, Signal
-from PySide6.QtGui import QFont, QIcon, QKeySequence, QShortcut, QAction
+from PySide6.QtCore import Qt, QThread, Signal, QSettings, QStandardPaths
+from PySide6.QtGui import QFont, QIcon, QKeySequence, QShortcut, QAction, QPixmap
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QSplitter, QStatusBar, QMessageBox, QFileDialog, QDialog,
-    QProgressBar, QLabel, QLineEdit, QPushButton
+    QProgressBar, QLabel, QLineEdit, QPlainTextEdit, QTextEdit, QPushButton, QToolButton,
+    QGraphicsBlurEffect
 )
 
 from core.animation import Animation
@@ -29,7 +30,7 @@ from ui.window_list import QtWindowListPanel
 from ui.properties import QtPropertiesPanel
 
 APP_TITLE = "Windownimator"
-APP_VERSION = "1.0.0"
+APP_VERSION = "2.0.0"
 
 
 # ── Export Dialog ─────────────────────────────────────────────────────────────
@@ -234,14 +235,46 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1000, 650)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground, True)
 
+        icon_path = os.path.join(os.path.dirname(__file__), "windownimator.ico")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+
         self.animation: Animation = Animation.new()
-        self._selected_kf_id:  Optional[str] = None
-        self._selected_win_id: Optional[str] = None
+        self._selected_kf_id:   Optional[str] = None
+        self._selected_win_id:  Optional[str] = None
+        self._selected_win_ids: List[str]     = []
+        self._undo_stack: List[dict]           = []
         self._player: Optional[AnimationPlayer] = None
 
         self._build_ui()
+        saved_theme = QSettings("Windownimator", "Windownimator2").value("theme", "navy")
+        self._set_theme(str(saved_theme))
         self._select_kf(self.animation.keyframes[0].id if self.animation.keyframes else None)
         self._refresh_all()
+        self.animation.modified = False
+
+    def _push_undo(self):
+        snapshot = self.animation.to_dict()
+        self._undo_stack.append(snapshot)
+        if len(self._undo_stack) > 50:
+            self._undo_stack.pop(0)
+
+    def _undo(self):
+        if not self._undo_stack:
+            self.status_bar.showMessage("Нечего отменять.")
+            return
+        snapshot = self._undo_stack.pop()
+        fp = self.animation.file_path
+        self.animation = Animation.from_dict(snapshot, file_path=fp)
+        self.animation.modified = True
+        self._refresh_all()
+
+        wins = [self.animation.get_window(wid) for wid in self._selected_win_ids if self.animation.get_window(wid)]
+        kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else (self.animation.keyframes[0] if self.animation.keyframes else None)
+        self.properties_panel.load_windows(wins, kf)
+        self.win_list_panel.set_selected(self._selected_win_ids)
+        self.stage.set_selected_windows(self._selected_win_ids)
+        self.status_bar.showMessage("Действие отменено (Ctrl+Z).")
 
     def showEvent(self, event):
         super().showEvent(event)
@@ -265,14 +298,15 @@ class MainWindow(QMainWindow):
 
         # Left Window List
         self.win_list_panel = QtWindowListPanel()
-        self.win_list_panel.window_selected.connect(self._on_select_window)
+        self.win_list_panel.window_selected_ctrl.connect(self._on_select_window)
         self.win_list_panel.add_window_requested.connect(self._add_window)
         self.win_list_panel.delete_window_requested.connect(self._del_window)
         h_splitter.addWidget(self.win_list_panel)
 
         # Stage
         self.stage = QtStage()
-        self.stage.window_selected.connect(self._on_stage_select_window)
+        self.stage.window_selected_ctrl.connect(self._on_select_window)
+        self.stage.window_move_started.connect(self._on_stage_move_start)
         self.stage.window_moved.connect(self._on_stage_move)
         h_splitter.addWidget(self.stage)
 
@@ -322,7 +356,6 @@ class MainWindow(QMainWindow):
         file_menu.addAction("Открыть проект...", self._open, QKeySequence("Ctrl+O"))
         file_menu.addSeparator()
         file_menu.addAction("Сохранить", self._save, QKeySequence("Ctrl+S"))
-        file_menu.addAction("Сохранить как...", self._save_as, QKeySequence("Ctrl+Shift+S"))
         file_menu.addSeparator()
         file_menu.addAction("Выход", self.close)
 
@@ -340,10 +373,15 @@ class MainWindow(QMainWindow):
             act = theme_menu.addAction(theme_info["name"])
             act.triggered.connect(lambda checked=False, k=key: self._set_theme(k))
 
+        # Help Menu
+        help_menu = menubar.addMenu("Справка")
+        help_menu.addAction("О программе...", self._show_about)
+
     def _set_theme(self, theme_key: str):
         qss = get_theme_qss(theme_key)
         QApplication.instance().setStyleSheet(qss)
         self.menuBar().setStyleSheet("")
+        QSettings("Windownimator", "Windownimator2").setValue("theme", theme_key)
         # Update all panel structural styles
         self.win_list_panel.update_theme()
         self.timeline.update_theme()
@@ -362,31 +400,6 @@ class MainWindow(QMainWindow):
         toolbar = self.addToolBar("Основная панель")
         toolbar.setMovable(False)
 
-        # Quick Actions
-        act_new = QAction("Новый", self)
-        act_new.triggered.connect(self._new)
-        toolbar.addAction(act_new)
-
-        act_open = QAction("Открыть", self)
-        act_open.triggered.connect(self._open)
-        toolbar.addAction(act_open)
-
-        act_save = QAction("Сохранить", self)
-        act_save.triggered.connect(self._save)
-        toolbar.addAction(act_save)
-
-        toolbar.addSeparator()
-
-        act_add_kf = QAction("Добавить кадр", self)
-        act_add_kf.triggered.connect(self._add_kf)
-        toolbar.addAction(act_add_kf)
-
-        act_del_kf = QAction("Удалить кадр", self)
-        act_del_kf.triggered.connect(self._del_kf)
-        toolbar.addAction(act_del_kf)
-
-        toolbar.addSeparator()
-
         # Play / Stop Button
         self.btn_play = QPushButton("Проиграть анимацию")
         self.btn_play.setObjectName("btnSuccess")
@@ -398,27 +411,65 @@ class MainWindow(QMainWindow):
 
 
     def _bind_shortcuts(self):
-        QShortcut(QKeySequence("F5"), self, self._toggle_play)
-        QShortcut(QKeySequence("Escape"), self, self._stop_play)
-        QShortcut(QKeySequence("Ctrl+D"), self, self._dup_selected_kf)
+        sc_play  = QShortcut(QKeySequence("F5"), self, self._toggle_play)
+        sc_stop  = QShortcut(QKeySequence("Escape"), self, self._stop_play)
+        sc_dup   = QShortcut(QKeySequence("Ctrl+D"), self, self._dup_selected_kf)
+        sc_undo  = QShortcut(QKeySequence("Ctrl+Z"), self, self._undo)
+        sc_del   = QShortcut(QKeySequence("Delete"), self, self._del_selected_windows)
+        sc_del2  = QShortcut(QKeySequence("Del"), self, self._del_selected_windows)
+        sc_back  = QShortcut(QKeySequence("Backspace"), self, self._del_selected_windows)
+
+        for sc in (sc_play, sc_stop, sc_dup, sc_undo, sc_del, sc_del2, sc_back):
+            sc.setContext(Qt.ShortcutContext.WindowShortcut)
+
+    def keyPressEvent(self, event):
+        focused = QApplication.focusWidget()
+        if focused and isinstance(focused, (QLineEdit, QPlainTextEdit, QTextEdit)):
+            super().keyPressEvent(event)
+            return
+
+        key = event.key()
+        is_ctrl = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
+
+        if key in (Qt.Key.Key_Delete, Qt.Key.Key_Backspace):
+            self._del_selected_windows()
+            event.accept()
+            return
+        elif is_ctrl and key == Qt.Key.Key_Z:
+            self._undo()
+            event.accept()
+            return
+
+        super().keyPressEvent(event)
 
     # ── Actions ─────────────────────────────────────────────────────────────
 
-    def _new(self):
-        if self.animation.modified:
+    def _new(self, prompt_save: bool = True):
+        if prompt_save and self.animation.modified:
             reply = QMessageBox.question(self, "Новый проект", "Сохранить текущие изменения?")
             if reply == QMessageBox.StandardButton.Yes:
                 self._save()
         self._stop_play()
         self.animation = Animation.new()
+        self.animation.modified = False
+        self._undo_stack.clear()
         self._selected_kf_id = None
         self._selected_win_id = None
+        self._selected_win_ids = []
         self._select_kf(self.animation.keyframes[0].id)
         self._refresh_all()
+        self.animation.modified = False
         self.status_bar.showMessage("Новый проект создан.")
 
+    def _get_default_projects_dir(self) -> str:
+        docs_dir = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.DocumentsLocation)
+        projects_dir = os.path.join(docs_dir, "windownimator_projects")
+        os.makedirs(projects_dir, exist_ok=True)
+        return projects_dir
+
     def _open(self):
-        file_path, _ = QFileDialog.getOpenFileName(self, "Открыть проект", "", "Windownimator Project (*.wa)")
+        default_dir = self._get_default_projects_dir()
+        file_path, _ = QFileDialog.getOpenFileName(self, "Открыть проект", default_dir, "Windownimator Project (*.wa)")
         if file_path:
             self._stop_play()
             self.animation = Animation.load(file_path)
@@ -437,7 +488,9 @@ class MainWindow(QMainWindow):
         self.status_bar.showMessage(f"Сохранено: {os.path.basename(self.animation.file_path)}")
 
     def _save_as(self):
-        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить проект как", self.animation.name + ".wa", "Windownimator Project (*.wa)")
+        default_dir = self._get_default_projects_dir()
+        default_path = os.path.join(default_dir, self.animation.name + ".wa")
+        file_path, _ = QFileDialog.getSaveFileName(self, "Сохранить проект как", default_path, "Windownimator Project (*.wa)")
         if file_path:
             self.animation.save(file_path)
             self._update_title()
@@ -503,51 +556,71 @@ class MainWindow(QMainWindow):
         name = f"{titles.get(icon_type, 'Окно')} {count}"
         win = WindowObject(name=name, title=titles.get(icon_type, "Окно"), message=msgs.get(icon_type, ""), icon=icon_type)
         self.animation.add_window(win)
+        self._selected_win_ids = [win.id]
         self._selected_win_id = win.id
         self._refresh_all()
         kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else None
-        self.properties_panel.load_window(win, kf)
+        self.properties_panel.load_windows([win], kf)
 
     def _del_window(self, win_id: str):
-        win = self.animation.get_window(win_id)
-        name = win.name if win else "Окно"
-        reply = QMessageBox.question(self, "Удаление", f"Удалить «{name}»?")
+        if win_id not in self._selected_win_ids:
+            self._selected_win_ids = [win_id]
+        self._del_selected_windows()
+
+    def _del_selected_windows(self):
+        if not self._selected_win_ids:
+            return
+        count = len(self._selected_win_ids)
+        msg = f"Удалить выбранные окна ({count})?" if count > 1 else f"Удалить выбранное окно?"
+        reply = QMessageBox.question(self, "Удаление", msg)
         if reply == QMessageBox.StandardButton.Yes:
-            self.animation.remove_window(win_id)
-            if self._selected_win_id == win_id:
-                self._selected_win_id = None
-                self.properties_panel.load_window(None)
+            self._push_undo()
+            for wid in list(self._selected_win_ids):
+                self.animation.remove_window(wid)
+            self._selected_win_ids = []
+            self._selected_win_id = None
+            self.properties_panel.load_windows([], None)
             self._refresh_all()
 
     # ── Selection & Property Updates ────────────────────────────────────────
 
     def _select_kf(self, kf_id: Optional[str]):
         self._selected_kf_id = kf_id
-        kf = self.animation.get_keyframe(kf_id) if kf_id else None
+        kf = self.animation.get_keyframe(kf_id) if kf_id else (self.animation.keyframes[0] if self.animation.keyframes else None)
         self.stage.set_keyframe(kf)
         self.properties_panel.load_keyframe(kf)
-        if self._selected_win_id:
-            win = self.animation.get_window(self._selected_win_id)
-            if win:
-                self.properties_panel.load_window(win, kf)
+        if self._selected_win_ids:
+            wins = [self.animation.get_window(wid) for wid in self._selected_win_ids if self.animation.get_window(wid)]
+            if wins:
+                self.properties_panel.load_windows(wins, kf)
 
     def _on_kf_select(self, kf_id: str):
         self._select_kf(kf_id)
         self.timeline.refresh(self.animation, self._selected_kf_id)
 
-    def _on_select_window(self, win_id: Optional[str]):
-        self._selected_win_id = win_id
-        win = self.animation.get_window(win_id) if win_id else None
-        kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else None
-        self.properties_panel.load_window(win, kf)
-        self.stage.set_selected_window(win_id)
+    def _on_select_window(self, win_id: Optional[str], is_ctrl: bool = False):
+        if not win_id:
+            self._selected_win_ids = []
+            self._selected_win_id = None
+        elif is_ctrl:
+            if win_id in self._selected_win_ids:
+                self._selected_win_ids.remove(win_id)
+            else:
+                self._selected_win_ids.append(win_id)
+            self._selected_win_id = self._selected_win_ids[-1] if self._selected_win_ids else None
+        else:
+            self._selected_win_ids = [win_id]
+            self._selected_win_id = win_id
 
-    def _on_stage_select_window(self, win_id: Optional[str]):
-        self._selected_win_id = win_id
-        win = self.animation.get_window(win_id) if win_id else None
-        kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else None
-        self.properties_panel.load_window(win, kf)
-        self.win_list_panel.set_selected(win_id)
+        wins = [self.animation.get_window(wid) for wid in self._selected_win_ids if self.animation.get_window(wid)]
+        kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else (self.animation.keyframes[0] if self.animation.keyframes else None)
+        
+        self.properties_panel.load_windows(wins, kf)
+        self.win_list_panel.set_selected(self._selected_win_ids)
+        self.stage.set_selected_windows(self._selected_win_ids)
+
+    def _on_stage_move_start(self, win_id: str):
+        self._push_undo()
 
     def _on_stage_move(self, win_id: str, x: int, y: int):
         self.animation.modified = True
@@ -555,8 +628,10 @@ class MainWindow(QMainWindow):
 
     def _on_win_prop_change(self):
         self.animation.modified = True
-        self.win_list_panel.refresh(self.animation, self._selected_win_id)
+        self.win_list_panel.refresh(self.animation, self._selected_win_ids)
         self.stage.refresh()
+        self.stage.set_selected_windows(self._selected_win_ids)
+        self._update_title()
         self._update_title()
 
     def _on_kf_prop_change(self):
@@ -626,9 +701,8 @@ class MainWindow(QMainWindow):
     def _update_title(self):
         mod = " •" if self.animation.modified else ""
         fp = f" — {os.path.basename(self.animation.file_path)}" if self.animation.file_path else ""
-        warn = "" if self.isMaximized() else " [ВНИМАНИЕ: Окно не развёрнуто на весь экран — возможны проблемы с отображением интерфейса]"
         ver = f" {APP_VERSION}" if APP_VERSION else ""
-        self.setWindowTitle(f"{APP_TITLE}{ver}{fp}{mod}{warn}")
+        self.setWindowTitle(f"{APP_TITLE}{ver}{fp}{mod}")
 
     def changeEvent(self, event):
         if event.type() == event.Type.WindowStateChange:
@@ -638,6 +712,9 @@ class MainWindow(QMainWindow):
     def resizeEvent(self, event):
         self._update_title()
         super().resizeEvent(event)
+
+    def _show_about(self):
+        AboutDialog(self).exec()
 
     def closeEvent(self, event):
         if self.animation.modified:
@@ -653,14 +730,219 @@ class MainWindow(QMainWindow):
         event.accept()
 
 
+# ── About Dialog ──────────────────────────────────────────────────────────────
+
+class AboutDialog(QDialog):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("О программе Windownimator")
+        self.setFixedSize(460, 220)
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
+
+        icon_path = os.path.join(os.path.dirname(__file__), "windownimator.ico")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #232323;
+                color: #f4f4f5;
+            }
+            QLabel {
+                color: #f4f4f5;
+            }
+            QPushButton {
+                background-color: #2f2f2f;
+                color: #f4f4f5;
+                border: 1px solid #444444;
+                border-radius: 8px;
+                padding: 8px 24px;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #3a3a3a;
+                border-color: #555555;
+            }
+        """)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 24, 24, 24)
+        layout.setSpacing(14)
+
+        # Header App Title
+        title_box = QVBoxLayout()
+        title_box.setSpacing(4)
+        app_name_lbl = QLabel(f"Windownimator {APP_VERSION}")
+        app_name_lbl.setFont(QFont("Segoe UI", 16, QFont.Weight.Bold))
+        title_box.addWidget(app_name_lbl)
+
+        desc_lbl = QLabel("Инструмент для создания анимаций системных диалоговых окон Windows.")
+        desc_lbl.setStyleSheet("color: #a1a1aa;")
+        desc_lbl.setWordWrap(True)
+        title_box.addWidget(desc_lbl)
+
+        layout.addLayout(title_box)
+
+        # Repo URL
+        repo_url = "https://github.com/arsenjkin459g-source/windownimator"
+        repo_lbl = QLabel(f'Репозиторий GitHub:<br><a href="{repo_url}" style="color: #60a5fa; text-decoration: underline;">{repo_url}</a>')
+        repo_lbl.setOpenExternalLinks(True)
+        repo_lbl.setFont(QFont("Segoe UI", 10))
+        layout.addWidget(repo_lbl)
+
+        layout.addStretch()
+
+        # Close button
+        btn_box = QHBoxLayout()
+        btn_box.addStretch()
+        ok_btn = QPushButton("Закрыть")
+        ok_btn.setCursor(Qt.CursorShape.PointingHandCursor)
+        ok_btn.clicked.connect(self.accept)
+        btn_box.addWidget(ok_btn)
+
+        layout.addLayout(btn_box)
+
+
+# ── Welcome Dialog ─────────────────────────────────────────────────────────────
+
+class WelcomeDialog(QDialog):
+    ACTION_NONE  = 0
+    ACTION_NEW   = 1
+    ACTION_OPEN  = 2
+    ACTION_CLOSE = 3
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Добро пожаловать в Windownimator 2.0")
+        self.setFixedSize(580, 420)
+        self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
+        self.action = self.ACTION_NONE
+
+        icon_path = os.path.join(os.path.dirname(__file__), "windownimator.ico")
+        if os.path.exists(icon_path):
+            self.setWindowIcon(QIcon(icon_path))
+
+        self.setStyleSheet("""
+            QDialog {
+                background-color: #232323;
+                color: #f4f4f5;
+            }
+            QLabel {
+                color: #f4f4f5;
+            }
+            QPushButton#welcomeBtn {
+                background-color: #2f2f2f;
+                color: #f4f4f5;
+                border: 1px solid #444444;
+                border-radius: 10px;
+                padding: 16px;
+                text-align: left;
+                font-size: 14px;
+                font-weight: bold;
+            }
+            QPushButton#welcomeBtn:hover {
+                background-color: #3a3a3a;
+                border-color: #555555;
+                color: #ffffff;
+            }
+        """)
+
+        layout = QVBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 20)
+        layout.setSpacing(14)
+
+        # ── Banner Header Container ──────────────────────────────────────────
+        banner_container = QWidget()
+        banner_container.setFixedHeight(150)
+
+        self.banner_lbl = QLabel(banner_container)
+        self.banner_lbl.setGeometry(0, 0, 580, 150)
+
+        banner_path = os.path.join(os.path.dirname(__file__), "assets", "welcome_banner.jpg")
+        if not os.path.exists(banner_path):
+            banner_path = os.path.join(os.path.dirname(__file__), "assets", "readme_header.jpg")
+
+        if os.path.exists(banner_path):
+            pixmap = QPixmap(banner_path).scaled(580, 150, Qt.AspectRatioMode.KeepAspectRatioByExpanding, Qt.TransformationMode.SmoothTransformation)
+            self.banner_lbl.setPixmap(pixmap)
+
+            blur = QGraphicsBlurEffect()
+            blur.setBlurRadius(8.0)
+            self.banner_lbl.setGraphicsEffect(blur)
+
+        layout.addWidget(banner_container)
+
+        # ── Action Text & Buttons ───────────────────────────────────────────
+        sub_lbl = QLabel("   Выберите действие для начала работы над анимацией:")
+        sub_lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        sub_lbl.setStyleSheet("color: #e4e4e7;")
+        layout.addWidget(sub_lbl)
+
+        btn_box = QVBoxLayout()
+        btn_box.setContentsMargins(24, 0, 24, 0)
+        btn_box.setSpacing(12)
+
+        btn_new = QPushButton("Создать новую анимацию\nНачать проект с чистого листа")
+        btn_new.setObjectName("welcomeBtn")
+        btn_new.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_new.clicked.connect(self._on_new)
+        btn_box.addWidget(btn_new)
+
+        btn_open = QPushButton("Открыть файл анимации (.wa)\nЗагрузить существующий проект из файла")
+        btn_open.setObjectName("welcomeBtn")
+        btn_open.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_open.clicked.connect(self._on_open)
+        btn_box.addWidget(btn_open)
+
+        layout.addLayout(btn_box)
+        layout.addStretch()
+
+    def _on_new(self):
+        self.action = self.ACTION_NEW
+        self.accept()
+
+    def _on_open(self):
+        self.action = self.ACTION_OPEN
+        self.accept()
+
+    def _on_close(self):
+        self.action = self.ACTION_CLOSE
+        self.reject()
+
+    def reject(self):
+        self.action = self.ACTION_CLOSE
+        super().reject()
+
+
 # ── Entry Point ───────────────────────────────────────────────────────────────
 
 def main():
+    try:
+        myappid = "Windownimator.Windownimator2.App.2.0"
+        ctypes.windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
+    except Exception:
+        pass
+
     app = QApplication(sys.argv)
     app.setStyleSheet(DARK_THEME_QSS)
 
+    icon_path = os.path.join(os.path.dirname(__file__), "windownimator.ico")
+    if os.path.exists(icon_path):
+        app.setWindowIcon(QIcon(icon_path))
+
     window = MainWindow()
-    window.show()
+
+    dlg = WelcomeDialog(window)
+    res = dlg.exec()
+
+    if dlg.action == WelcomeDialog.ACTION_OPEN:
+        window.show()
+        window._open()
+    elif dlg.action == WelcomeDialog.ACTION_NEW:
+        window.show()
+        window._new(prompt_save=False)
+    else:
+        sys.exit(0)
 
     sys.exit(app.exec())
 

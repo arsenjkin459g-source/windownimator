@@ -29,6 +29,7 @@ ICON_SYMBOLS = {
 
 class WindowListItemWidget(QFrame):
     selected = Signal(str)
+    selected_with_ctrl = Signal(str, bool)
     delete_requested = Signal(str)
 
     def __init__(self, win_obj: "WindowObject", is_selected: bool, parent=None):
@@ -110,11 +111,14 @@ class WindowListItemWidget(QFrame):
 
     def mousePressEvent(self, event):
         if event.button() == Qt.MouseButton.LeftButton:
+            is_ctrl = bool(event.modifiers() & Qt.KeyboardModifier.ControlModifier)
             self.selected.emit(self.win_obj.id)
+            self.selected_with_ctrl.emit(self.win_obj.id, is_ctrl)
 
 
 class QtWindowListPanel(QWidget):
     window_selected = Signal(str)
+    window_selected_ctrl = Signal(str, bool)
     add_window_requested = Signal(str)  # icon_type
     delete_window_requested = Signal(str)  # win_id
 
@@ -122,7 +126,7 @@ class QtWindowListPanel(QWidget):
         super().__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._animation: Optional["Animation"] = None
-        self._selected_id: Optional[str] = None
+        self._selected_ids: List[str] = []
         self._build_ui()
 
     def _build_ui(self):
@@ -212,11 +216,17 @@ class QtWindowListPanel(QWidget):
         self._scroll.setStyleSheet(f"QScrollArea {{ background-color: {t['bg_input']}; border: none; }}")
         self.list_container.setStyleSheet(f"background-color: {t['bg_input']};")
 
-    def refresh(self, animation: Optional["Animation"] = None, selected_id: Optional[str] = None):
+    def refresh(self, animation: Optional["Animation"] = None, selected_ids: Union[None, str, List[str]] = None):
         if animation is not None:
             self._animation = animation
-        if selected_id is not None:
-            self._selected_id = selected_id
+
+        if selected_ids is not None:
+            if isinstance(selected_ids, list):
+                self._selected_ids = selected_ids
+            elif isinstance(selected_ids, str):
+                self._selected_ids = [selected_ids]
+            else:
+                self._selected_ids = []
 
         while self.list_layout.count():
             child = self.list_layout.takeAt(0)
@@ -231,12 +241,17 @@ class QtWindowListPanel(QWidget):
         self.count_lbl.setText(str(len(wins)))
 
         for win in wins:
-            is_sel = (win.id == self._selected_id)
+            is_sel = (win.id in self._selected_ids)
             item_widget = WindowListItemWidget(win, is_sel)
-            item_widget.selected.connect(self.window_selected.emit)
+            item_widget.selected_with_ctrl.connect(self.window_selected_ctrl.emit)
             item_widget.delete_requested.connect(self.delete_window_requested.emit)
             self.list_layout.addWidget(item_widget)
 
-    def set_selected(self, win_id: Optional[str]):
-        self._selected_id = win_id
+    def set_selected(self, selected_ids: Union[None, str, List[str]]):
+        if isinstance(selected_ids, list):
+            self._selected_ids = selected_ids
+        elif isinstance(selected_ids, str):
+            self._selected_ids = [selected_ids] if selected_ids else []
+        else:
+            self._selected_ids = []
         self.refresh()

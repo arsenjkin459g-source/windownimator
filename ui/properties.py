@@ -156,64 +156,78 @@ class QtPropertiesPanel(QWidget):
         win_layout.setContentsMargins(12, 12, 12, 12)
         win_layout.setSpacing(10)
 
-        win_layout.addWidget(self._create_section_lbl("ДВИЖЕНИЕ В ТЕКУЩЕМ КАДРЕ"))
-        win_layout.addWidget(QLabel("Кривая движения окна (easing):"))
+        # No window notice label
+        self.no_win_lbl = QLabel("Окно не выбрано для настройки\n\nВыберите окно на холсте или в списке слева.")
+        self.no_win_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.no_win_lbl.setFont(QFont("Segoe UI", 10, QFont.Weight.Bold))
+        self.no_win_lbl.setWordWrap(True)
+        self.no_win_lbl.setStyleSheet("color: #94a3b8; padding: 50px 12px;")
+        win_layout.addWidget(self.no_win_lbl)
+
+        # Window Controls Container
+        self.win_controls_widget = QWidget()
+        win_ctrl_layout = QVBoxLayout(self.win_controls_widget)
+        win_ctrl_layout.setContentsMargins(0, 0, 0, 0)
+        win_ctrl_layout.setSpacing(10)
+
+        win_ctrl_layout.addWidget(self._create_section_lbl("ДВИЖЕНИЕ В ТЕКУЩЕМ КАДРЕ"))
+        win_ctrl_layout.addWidget(QLabel("Кривая движения окна (easing):"))
         self.win_easing_combo = QComboBox()
         for label, val in WIN_EASINGS:
             self.win_easing_combo.addItem(label, val)
         self.win_easing_combo.currentIndexChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.win_easing_combo)
+        win_ctrl_layout.addWidget(self.win_easing_combo)
 
         self.win_preview_widget = EasingPreviewWidget()
-        win_layout.addWidget(self.win_preview_widget)
+        win_ctrl_layout.addWidget(self.win_preview_widget)
 
-        win_layout.addSpacing(14)
-        win_layout.addWidget(self._create_section_lbl("СОДЕРЖИМОЕ"))
+        win_ctrl_layout.addSpacing(14)
+        win_ctrl_layout.addWidget(self._create_section_lbl("СОДЕРЖИМОЕ"))
 
-        win_layout.addWidget(QLabel("Имя окна:"))
+        win_ctrl_layout.addWidget(QLabel("Имя окна:"))
         self.name_edit = QLineEdit()
         self.name_edit.textChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.name_edit)
+        win_ctrl_layout.addWidget(self.name_edit)
 
-        win_layout.addWidget(QLabel("Заголовок окна:"))
+        win_ctrl_layout.addWidget(QLabel("Заголовок окна:"))
         self.title_edit = QLineEdit()
         self.title_edit.textChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.title_edit)
+        win_ctrl_layout.addWidget(self.title_edit)
 
-        win_layout.addWidget(QLabel("Текст сообщения:"))
+        win_ctrl_layout.addWidget(QLabel("Текст сообщения:"))
         self.msg_edit = QPlainTextEdit()
         self.msg_edit.setFixedHeight(55)
         self.msg_edit.textChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.msg_edit)
+        win_ctrl_layout.addWidget(self.msg_edit)
 
-        win_layout.addSpacing(14)
-        win_layout.addWidget(self._create_section_lbl("ВИД И ИКОНКА"))
+        win_ctrl_layout.addSpacing(14)
+        win_ctrl_layout.addWidget(self._create_section_lbl("ВИД И ИКОНКА"))
 
-        win_layout.addWidget(QLabel("Иконка:"))
+        win_ctrl_layout.addWidget(QLabel("Иконка:"))
         self.icon_combo = QComboBox()
         for label, val in ICON_OPTIONS:
             self.icon_combo.addItem(label, val)
         self.icon_combo.currentIndexChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.icon_combo)
+        win_ctrl_layout.addWidget(self.icon_combo)
 
-        win_layout.addWidget(QLabel("Кнопки:"))
+        win_ctrl_layout.addWidget(QLabel("Кнопки:"))
         self.btn_combo = QComboBox()
         for label, val in BTN_OPTIONS:
             self.btn_combo.addItem(label, val)
         self.btn_combo.currentIndexChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.btn_combo)
+        win_ctrl_layout.addWidget(self.btn_combo)
 
-        win_layout.addSpacing(14)
-        win_layout.addWidget(self._create_section_lbl("ЗВУКИ"))
+        win_ctrl_layout.addSpacing(14)
+        win_ctrl_layout.addWidget(self._create_section_lbl("ЗВУКИ"))
 
-        win_layout.addWidget(QLabel("Системный звук:"))
+        win_ctrl_layout.addWidget(QLabel("Системный звук:"))
         self.sound_combo = QComboBox()
         for label, val in SYS_SOUNDS:
             self.sound_combo.addItem(label, val)
         self.sound_combo.currentIndexChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.sound_combo)
+        win_ctrl_layout.addWidget(self.sound_combo)
 
-        win_layout.addWidget(QLabel("Кастомный звук (WAV/MP3):"))
+        win_ctrl_layout.addWidget(QLabel("Кастомный звук (WAV/MP3):"))
         snd_row = QHBoxLayout()
         self.snd_edit = QLineEdit()
         self.snd_edit.textChanged.connect(self._on_win_changed)
@@ -223,15 +237,17 @@ class QtPropertiesPanel(QWidget):
         browse_btn.setFixedWidth(70)
         browse_btn.clicked.connect(self._browse_sound)
         snd_row.addWidget(browse_btn)
-        win_layout.addLayout(snd_row)
+        win_ctrl_layout.addLayout(snd_row)
 
-        win_layout.addWidget(QLabel("Запуск звука с кадра №:"))
+        win_ctrl_layout.addWidget(QLabel("Запуск звука с кадра №:"))
         self.snd_start_spin = QSpinBox()
         self.snd_start_spin.setRange(1, 100)
         self.snd_start_spin.valueChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.snd_start_spin)
+        win_ctrl_layout.addWidget(self.snd_start_spin)
 
-        win_layout.addStretch()
+        win_ctrl_layout.addStretch()
+
+        win_layout.addWidget(self.win_controls_widget)
 
         self._win_scroll = QScrollArea()
         self._win_scroll.setWidgetResizable(True)
@@ -287,6 +303,9 @@ class QtPropertiesPanel(QWidget):
 
         layout.addWidget(self.tabs)
 
+        self.no_win_lbl.show()
+        self.win_controls_widget.hide()
+
         self.update_theme()
 
     def _create_section_lbl(self, text: str) -> QLabel:
@@ -324,40 +343,87 @@ class QtPropertiesPanel(QWidget):
             self.win_preview_widget.update()
 
     def load_window(self, win: Optional["WindowObject"], kf: Optional["Keyframe"] = None):
-        self._win = win
+        self.load_windows([win] if win else [], kf)
+
+    def load_windows(self, wins: List["WindowObject"], kf: Optional["Keyframe"] = None):
+        self._wins = [w for w in wins if w is not None]
+        self._win = self._wins[0] if self._wins else None
         if kf is not None:
             self._kf = kf
 
-        if not win:
+        if not self._wins:
+            self._title_lbl.setText("СВОЙСТВА")
+            self.no_win_lbl.show()
+            self.win_controls_widget.hide()
             return
+
+        self.no_win_lbl.hide()
+        self.win_controls_widget.show()
+
+        if len(self._wins) > 1:
+            self._title_lbl.setText(f"СВОЙСТВА ({len(self._wins)} ОКОН)")
+        else:
+            self._title_lbl.setText("СВОЙСТВА")
 
         self._updating = True
         try:
-            self.name_edit.setText(win.name)
-            self.title_edit.setText(win.title)
-            self.msg_edit.setPlainText(win.message)
+            w0 = self._wins[0]
 
-            # Combo Indexes
-            for i in range(self.icon_combo.count()):
-                if self.icon_combo.itemData(i) == win.icon:
-                    self.icon_combo.setCurrentIndex(i)
+            if len(self._wins) == 1:
+                self.name_edit.setText(w0.name)
+                self.name_edit.setEnabled(True)
+            else:
+                self.name_edit.setText(f"Выбрано окон: {len(self._wins)}")
+                self.name_edit.setEnabled(False)
 
-            for i in range(self.btn_combo.count()):
-                if self.btn_combo.itemData(i) == win.buttons:
-                    self.btn_combo.setCurrentIndex(i)
+            if all(w.title == w0.title for w in self._wins):
+                self.title_edit.setText(w0.title)
+            else:
+                self.title_edit.setText("")
+                self.title_edit.setPlaceholderText("(Разные заголовки)")
 
-            for i in range(self.sound_combo.count()):
-                if self.sound_combo.itemData(i) == (win.system_sound or ""):
-                    self.sound_combo.setCurrentIndex(i)
+            if all(w.message == w0.message for w in self._wins):
+                self.msg_edit.setPlainText(w0.message)
+            else:
+                self.msg_edit.setPlainText("")
+                self.msg_edit.setPlaceholderText("(Разный текст сообщений)")
 
-            self.snd_edit.setText(win.sound_path or "")
-            self.snd_start_spin.setValue(win.sound_start_kf_index + 1)
+            if all(w.icon == w0.icon for w in self._wins):
+                for i in range(self.icon_combo.count()):
+                    if self.icon_combo.itemData(i) == w0.icon:
+                        self.icon_combo.setCurrentIndex(i)
+            else:
+                self.icon_combo.setCurrentIndex(0)
 
-            # Per-window easing for current keyframe
+            if all(w.buttons == w0.buttons for w in self._wins):
+                for i in range(self.btn_combo.count()):
+                    if self.btn_combo.itemData(i) == w0.buttons:
+                        self.btn_combo.setCurrentIndex(i)
+            else:
+                self.btn_combo.setCurrentIndex(0)
+
+            if all(w.system_sound == w0.system_sound for w in self._wins):
+                for i in range(self.sound_combo.count()):
+                    if self.sound_combo.itemData(i) == (w0.system_sound or ""):
+                        self.sound_combo.setCurrentIndex(i)
+            else:
+                self.sound_combo.setCurrentIndex(0)
+
+            if all(w.sound_path == w0.sound_path for w in self._wins):
+                self.snd_edit.setText(w0.sound_path or "")
+            else:
+                self.snd_edit.setText("")
+
+            if all(w.sound_start_kf_index == w0.sound_start_kf_index for w in self._wins):
+                self.snd_start_spin.setValue(w0.sound_start_kf_index + 1)
+            else:
+                self.snd_start_spin.setValue(1)
+
             win_eas = ""
-            if self._kf:
-                st = self._kf.get_state(win.id)
-                win_eas = st.easing or ""
+            if self._kf and self._wins:
+                first_eas = self._kf.get_state(w0.id).easing or ""
+                if all((self._kf.get_state(w.id).easing or "") == first_eas for w in self._wins):
+                    win_eas = first_eas
 
             for i in range(self.win_easing_combo.count()):
                 if self.win_easing_combo.itemData(i) == win_eas:
@@ -372,6 +438,13 @@ class QtPropertiesPanel(QWidget):
 
     def load_keyframe(self, kf: Optional["Keyframe"]):
         self._kf = kf
+        if not getattr(self, '_wins', None):
+            self.no_win_lbl.show()
+            self.win_controls_widget.hide()
+        else:
+            self.no_win_lbl.hide()
+            self.win_controls_widget.show()
+
         if not kf:
             return
 
@@ -387,8 +460,7 @@ class QtPropertiesPanel(QWidget):
 
             self.preview_widget.set_easing(kf.easing)
 
-            # If a window is currently loaded, update its preview widget
-            if self._win:
+            if getattr(self, '_win', None):
                 st = kf.get_state(self._win.id)
                 win_eas = st.easing or ""
                 active_eas = win_eas if win_eas else kf.easing
@@ -399,21 +471,30 @@ class QtPropertiesPanel(QWidget):
         self.tabs.setCurrentIndex(1)
 
     def _on_win_changed(self, *args):
-        if self._updating or not self._win:
+        if self._updating or not getattr(self, '_wins', None):
             return
-        self._win.name = self.name_edit.text()
-        self._win.title = self.title_edit.text()
-        self._win.message = self.msg_edit.toPlainText()
-        self._win.icon = self.icon_combo.currentData()
-        self._win.buttons = self.btn_combo.currentData()
-        self._win.system_sound = self.sound_combo.currentData() or None
-        self._win.sound_path = self.snd_edit.text().strip() or None
-        self._win.sound_start_kf_index = max(0, self.snd_start_spin.value() - 1)
+
+        for win in self._wins:
+            if len(self._wins) == 1:
+                win.name = self.name_edit.text()
+
+            if self.title_edit.text():
+                win.title = self.title_edit.text()
+            if self.msg_edit.toPlainText():
+                win.message = self.msg_edit.toPlainText()
+
+            win.icon = self.icon_combo.currentData()
+            win.buttons = self.btn_combo.currentData()
+            win.system_sound = self.sound_combo.currentData() or None
+            if self.snd_edit.text().strip():
+                win.sound_path = self.snd_edit.text().strip()
+            win.sound_start_kf_index = max(0, self.snd_start_spin.value() - 1)
+
+            if self._kf:
+                eas = self.win_easing_combo.currentData()
+                self._kf.get_state(win.id).easing = eas if eas else None
 
         eas = self.win_easing_combo.currentData()
-        if self._kf:
-            self._kf.get_state(self._win.id).easing = eas if eas else None
-
         active_eas = eas if eas else (self._kf.easing if self._kf else "ease_in_out")
         self.win_preview_widget.set_easing(active_eas)
 
