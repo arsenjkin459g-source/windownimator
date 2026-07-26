@@ -146,6 +146,7 @@ class QtPropertiesPanel(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._win: Optional["WindowObject"] = None
         self._kf:  Optional["Keyframe"]     = None
         self._updating = False

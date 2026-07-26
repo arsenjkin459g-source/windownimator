@@ -120,6 +120,7 @@ class QtWindowListPanel(QWidget):
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
         self._animation: Optional["Animation"] = None
         self._selected_id: Optional[str] = None
         self._build_ui()
@@ -188,6 +189,7 @@ class QtWindowListPanel(QWidget):
 
     def update_theme(self):
         t = get_current_theme()
+        self.setStyleSheet(f"background-color: {t['bg_dark']};")
         self._hdr.setStyleSheet(f"background-color: {t['bg_dark']}; border-bottom: 1px solid {t['border']};")
         self._title_lbl.setStyleSheet(f"color: {t['text_muted']}; letter-spacing: 1px;")
         self.count_lbl.setStyleSheet(f"color: {t['accent']};")
