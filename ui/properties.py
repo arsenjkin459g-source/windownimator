@@ -89,7 +89,8 @@ class EasingPreviewWidget(QWidget):
         pad = 12
 
         # Draw grid
-        painter.setPen(QPen(QColor("#1e293b"), 1, Qt.PenStyle.DashLine))
+        _t = get_current_theme()
+        painter.setPen(QPen(QColor(_t["border"]), 1, Qt.PenStyle.DashLine))
         painter.drawLine(pad, h - pad, w - pad, h - pad)
         painter.drawLine(pad, pad, pad, h - pad)
 
@@ -107,7 +108,7 @@ class EasingPreviewWidget(QWidget):
                 return fn_old(t) * (1.0 - alpha) + fn_new(t) * alpha
 
             # Draw Morphing Curve
-            painter.setPen(QPen(QColor("#38bdf8"), 2.5))
+            painter.setPen(QPen(QColor(_t["accent"]), 2.5))
             for i in range(steps + 1):
                 t = i / steps
                 v = interpolated_fn(t)
@@ -127,7 +128,8 @@ class EasingPreviewWidget(QWidget):
 
             # Outer glow dot
             painter.setPen(Qt.PenStyle.NoPen)
-            painter.setBrush(QBrush(QColor(96, 165, 250, 100)))
+            r, g, b = tuple(int(QColor(_t["accent_hover"]).name()[i:i+2], 16) for i in (1, 3, 5))
+            painter.setBrush(QBrush(QColor(r, g, b, 100)))
             painter.drawEllipse(QPointF(bx, by), 7, 7)
 
             # Inner bright dot
@@ -298,7 +300,7 @@ class QtPropertiesPanel(QWidget):
         kf_scroll = QScrollArea()
         kf_scroll.setWidgetResizable(True)
         kf_scroll.setFrameShape(QFrame.Shape.NoFrame)
-        kf_scroll.setStyleSheet("QScrollArea { background: #0f172a; border: none; }")
+        kf_scroll.setStyleSheet(f"QScrollArea {{ background: {t['bg_dark']}; border: none; }}")
         kf_scroll.setWidget(kf_tab)
         self.tabs.addTab(kf_scroll, "Кадр")
 
@@ -307,7 +309,7 @@ class QtPropertiesPanel(QWidget):
     def _create_section_lbl(self, text: str) -> QLabel:
         lbl = QLabel(text)
         lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        lbl.setStyleSheet("color: #38bdf8; background: transparent; border: none; padding: 2px 0px; margin: 0px; letter-spacing: 1px;")
+        lbl.setStyleSheet(f"color: {get_current_theme()['accent']}; background: transparent; border: none; padding: 2px 0px; margin: 0px; letter-spacing: 1px;")
         return lbl
 
     def load_window(self, win: Optional["WindowObject"]):

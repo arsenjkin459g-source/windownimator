@@ -145,7 +145,7 @@ class QtWindowListPanel(QWidget):
         hdr_layout.addStretch()
         self.count_lbl = QLabel("0")
         self.count_lbl.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-        self.count_lbl.setStyleSheet("color: #38bdf8;")
+        self.count_lbl.setStyleSheet(f"color: {t['accent']};")
         hdr_layout.addWidget(self.count_lbl)
 
         layout.addWidget(hdr)

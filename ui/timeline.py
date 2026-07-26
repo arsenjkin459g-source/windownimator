@@ -95,7 +95,7 @@ class KeyframeCard(QFrame):
         eas_symbol = EASING_SHORT.get(kf.easing, "◈")
         dur_lbl = QLabel(f"{eas_symbol} {kf.duration_ms} ms")
         dur_lbl.setFont(QFont("Segoe UI", 8, QFont.Weight.Bold))
-        dur_lbl.setStyleSheet("background: transparent; color: #ffffff;" if selected else "background: transparent; color: #38bdf8;")
+        dur_lbl.setStyleSheet("background: transparent; color: #ffffff;" if selected else f"background: transparent; color: {t['accent']};")
         dur_lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(dur_lbl)
 
