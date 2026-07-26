@@ -312,6 +312,7 @@ class QtPropertiesPanel(QWidget):
         self._title_lbl.setStyleSheet(f"color: {t['text_muted']}; letter-spacing: 1px;")
         self.tabs.setStyleSheet(f"""
             QTabWidget::pane {{ border: none; background: {t['bg_dark']}; }}
+            QTabBar {{ background: {t['bg_dark']}; }}
             QTabBar::tab {{ background: {t['bg_input']}; padding: 8px 16px; color: {t['text_muted']}; border: none; }}
             QTabBar::tab:selected {{ background: {t['bg_dark']}; color: {t['accent']}; font-weight: bold; }}
         """)
