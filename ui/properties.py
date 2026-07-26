@@ -28,6 +28,7 @@ SYS_SOUNDS   = [("— Нет звука", ""), ("🔔 Информация", "in
 EASINGS      = [("Линейное", "linear"), ("Ease In (разгон)", "ease_in"),
                 ("Ease Out (торможение)", "ease_out"), ("Ease In-Out (плавно)", "ease_in_out"),
                 ("Пружина (отскок)", "bounce"), ("Упругое (elastic)", "elastic")]
+WIN_EASINGS  = [("— По умолчанию для кадра", "")] + EASINGS
 
 
 class EasingPreviewWidget(QWidget):
@@ -243,6 +244,18 @@ class QtPropertiesPanel(QWidget):
         self.snd_start_spin.valueChanged.connect(self._on_win_changed)
         win_layout.addWidget(self.snd_start_spin)
 
+        win_layout.addSpacing(14)
+        win_layout.addWidget(self._create_section_lbl("ДВИЖЕНИЕ В ТЕКУЩЕМ КАДРЕ"))
+        win_layout.addWidget(QLabel("Кривая движения окна (easing):"))
+        self.win_easing_combo = QComboBox()
+        for label, val in WIN_EASINGS:
+            self.win_easing_combo.addItem(label, val)
+        self.win_easing_combo.currentIndexChanged.connect(self._on_win_changed)
+        win_layout.addWidget(self.win_easing_combo)
+
+        self.win_preview_widget = EasingPreviewWidget()
+        win_layout.addWidget(self.win_preview_widget)
+
         win_layout.addStretch()
 
         self._win_scroll = QScrollArea()
@@ -331,9 +344,15 @@ class QtPropertiesPanel(QWidget):
             lbl.setStyleSheet(f"color: {t['accent']}; background: transparent; border: none; padding: 2px 0px; margin: 0px; letter-spacing: 1px;")
         self.preview_widget.setStyleSheet(f"background-color: {t['bg_input']}; border: 1px solid {t['border_input']}; border-radius: 6px;")
         self.preview_widget.update()
+        if hasattr(self, 'win_preview_widget'):
+            self.win_preview_widget.setStyleSheet(f"background-color: {t['bg_input']}; border: 1px solid {t['border_input']}; border-radius: 6px;")
+            self.win_preview_widget.update()
 
-    def load_window(self, win: Optional["WindowObject"]):
+    def load_window(self, win: Optional["WindowObject"], kf: Optional["Keyframe"] = None):
         self._win = win
+        if kf is not None:
+            self._kf = kf
+
         if not win:
             return
 
@@ -358,6 +377,19 @@ class QtPropertiesPanel(QWidget):
 
             self.snd_edit.setText(win.sound_path or "")
             self.snd_start_spin.setValue(win.sound_start_kf_index + 1)
+
+            # Per-window easing for current keyframe
+            win_eas = ""
+            if self._kf:
+                st = self._kf.get_state(win.id)
+                win_eas = st.easing or ""
+
+            for i in range(self.win_easing_combo.count()):
+                if self.win_easing_combo.itemData(i) == win_eas:
+                    self.win_easing_combo.setCurrentIndex(i)
+
+            active_eas = win_eas if win_eas else (self._kf.easing if self._kf else "ease_in_out")
+            self.win_preview_widget.set_easing(active_eas)
         finally:
             self._updating = False
 
@@ -379,6 +411,13 @@ class QtPropertiesPanel(QWidget):
                     self.easing_combo.setCurrentIndex(i)
 
             self.preview_widget.set_easing(kf.easing)
+
+            # If a window is currently loaded, update its preview widget
+            if self._win:
+                st = kf.get_state(self._win.id)
+                win_eas = st.easing or ""
+                active_eas = win_eas if win_eas else kf.easing
+                self.win_preview_widget.set_easing(active_eas)
         finally:
             self._updating = False
 
@@ -395,6 +434,13 @@ class QtPropertiesPanel(QWidget):
         self._win.system_sound = self.sound_combo.currentData() or None
         self._win.sound_path = self.snd_edit.text().strip() or None
         self._win.sound_start_kf_index = max(0, self.snd_start_spin.value() - 1)
+
+        if self._kf:
+            eas = self.win_easing_combo.currentData()
+            self._kf.get_state(self._win.id).easing = eas if eas else None
+            active_eas = eas if eas else self._kf.easing
+            self.win_preview_widget.set_easing(active_eas)
+
         self.window_changed.emit()
 
     def _on_kf_changed(self):

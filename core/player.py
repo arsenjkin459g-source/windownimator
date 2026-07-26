@@ -411,7 +411,8 @@ class AnimationPlayer(QObject):
                         s0 = kf_from.get_state(wid)
                         s1 = kf_to.get_state(wid)
 
-                        ix, iy = interpolate_pos(s0.x, s0.y, s1.x, s1.y, t, easing)
+                        win_easing = s0.easing if s0.easing else kf_from.easing
+                        ix, iy = interpolate_pos(s0.x, s0.y, s1.x, s1.y, t, win_easing)
 
                         was_visible = s0.visible
                         will_visible = s1.visible

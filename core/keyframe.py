@@ -22,17 +22,26 @@ EASING_LABELS = {
 
 @dataclass
 class WindowState:
-    """Position and visibility of one window in a specific keyframe."""
+    """Position, visibility, and optional custom easing of one window in a specific keyframe."""
     x:       int  = 400
     y:       int  = 300
     visible: bool = True
+    easing:  Optional[EasingType] = None
 
     def to_dict(self) -> dict:
-        return {"x": self.x, "y": self.y, "visible": self.visible}
+        d = {"x": self.x, "y": self.y, "visible": self.visible}
+        if self.easing:
+            d["easing"] = self.easing
+        return d
 
     @classmethod
     def from_dict(cls, d: dict) -> "WindowState":
-        return cls(x=d.get("x", 400), y=d.get("y", 300), visible=d.get("visible", True))
+        return cls(
+            x=d.get("x", 400),
+            y=d.get("y", 300),
+            visible=d.get("visible", True),
+            easing=d.get("easing", None),
+        )
 
 
 @dataclass
@@ -53,6 +62,12 @@ class Keyframe:
 
     def get_state(self, window_id: str) -> WindowState:
         return self.states.get(window_id, WindowState())
+
+    def get_window_easing(self, window_id: str) -> EasingType:
+        st = self.states.get(window_id)
+        if st and st.easing:
+            return st.easing
+        return self.easing
 
     def set_state(self, window_id: str, state: WindowState):
         self.states[window_id] = state

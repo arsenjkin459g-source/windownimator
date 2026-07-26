@@ -169,12 +169,14 @@ def main():
                 threading.Thread(target=_psnd,args=(wo,),daemon=True).start()
         t0=time.perf_counter()
         for step in range(steps+1):
-            t=step/steps; et=_ease(t,eas)
+            t=step/steps
             for wo in wins:
                 wid=wo["id"]; d=dlgs.get(wid)
                 if not d: continue
                 s0=kff.get("states",{{}}).get(wid,{{"x":400,"y":300}})
                 s1=kft.get("states",{{}}).get(wid,{{"x":400,"y":300}})
+                win_eas=s0.get("easing") or eas
+                et=_ease(t,win_eas)
                 x=int(s0.get("x",400)+(s1.get("x",400)-s0.get("x",400))*et)
                 y=int(s0.get("y",300)+(s1.get("y",300)-s0.get("y",300))*et)
                 v0=s0.get("visible",True); v1=s1.get("visible",True)

@@ -505,7 +505,8 @@ class MainWindow(QMainWindow):
         self.animation.add_window(win)
         self._selected_win_id = win.id
         self._refresh_all()
-        self.properties_panel.load_window(win)
+        kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else None
+        self.properties_panel.load_window(win, kf)
 
     def _del_window(self, win_id: str):
         win = self.animation.get_window(win_id)
@@ -525,6 +526,10 @@ class MainWindow(QMainWindow):
         kf = self.animation.get_keyframe(kf_id) if kf_id else None
         self.stage.set_keyframe(kf)
         self.properties_panel.load_keyframe(kf)
+        if self._selected_win_id:
+            win = self.animation.get_window(self._selected_win_id)
+            if win:
+                self.properties_panel.load_window(win, kf)
 
     def _on_kf_select(self, kf_id: str):
         self._select_kf(kf_id)
@@ -533,13 +538,15 @@ class MainWindow(QMainWindow):
     def _on_select_window(self, win_id: Optional[str]):
         self._selected_win_id = win_id
         win = self.animation.get_window(win_id) if win_id else None
-        self.properties_panel.load_window(win)
+        kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else None
+        self.properties_panel.load_window(win, kf)
         self.stage.set_selected_window(win_id)
 
     def _on_stage_select_window(self, win_id: Optional[str]):
         self._selected_win_id = win_id
         win = self.animation.get_window(win_id) if win_id else None
-        self.properties_panel.load_window(win)
+        kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else None
+        self.properties_panel.load_window(win, kf)
         self.win_list_panel.set_selected(win_id)
 
     def _on_stage_move(self, win_id: str, x: int, y: int):
