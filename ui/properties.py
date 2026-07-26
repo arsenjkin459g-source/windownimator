@@ -181,6 +181,18 @@ class QtPropertiesPanel(QWidget):
         win_layout.setContentsMargins(12, 12, 12, 12)
         win_layout.setSpacing(10)
 
+        win_layout.addWidget(self._create_section_lbl("ДВИЖЕНИЕ В ТЕКУЩЕМ КАДРЕ"))
+        win_layout.addWidget(QLabel("Кривая движения окна (easing):"))
+        self.win_easing_combo = QComboBox()
+        for label, val in WIN_EASINGS:
+            self.win_easing_combo.addItem(label, val)
+        self.win_easing_combo.currentIndexChanged.connect(self._on_win_changed)
+        win_layout.addWidget(self.win_easing_combo)
+
+        self.win_preview_widget = EasingPreviewWidget()
+        win_layout.addWidget(self.win_preview_widget)
+
+        win_layout.addSpacing(14)
         win_layout.addWidget(self._create_section_lbl("СОДЕРЖИМОЕ"))
 
         win_layout.addWidget(QLabel("Имя окна:"))
@@ -243,18 +255,6 @@ class QtPropertiesPanel(QWidget):
         self.snd_start_spin.setRange(1, 100)
         self.snd_start_spin.valueChanged.connect(self._on_win_changed)
         win_layout.addWidget(self.snd_start_spin)
-
-        win_layout.addSpacing(14)
-        win_layout.addWidget(self._create_section_lbl("ДВИЖЕНИЕ В ТЕКУЩЕМ КАДРЕ"))
-        win_layout.addWidget(QLabel("Кривая движения окна (easing):"))
-        self.win_easing_combo = QComboBox()
-        for label, val in WIN_EASINGS:
-            self.win_easing_combo.addItem(label, val)
-        self.win_easing_combo.currentIndexChanged.connect(self._on_win_changed)
-        win_layout.addWidget(self.win_easing_combo)
-
-        self.win_preview_widget = EasingPreviewWidget()
-        win_layout.addWidget(self.win_preview_widget)
 
         win_layout.addStretch()
 
