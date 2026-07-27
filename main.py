@@ -22,6 +22,7 @@ from core.keyframe import Keyframe
 from core.window_object import WindowObject
 from core.player import AnimationPlayer
 from core.exporter import export_to_exe
+from core.discord_rpc import DiscordRPCManager
 
 from ui.styles import DARK_THEME_QSS, THEMES, get_theme_qss, set_current_theme
 from ui.stage import QtStage
@@ -30,7 +31,7 @@ from ui.window_list import QtWindowListPanel
 from ui.properties import QtPropertiesPanel
 
 APP_TITLE = "Windownimator"
-APP_VERSION = "2.0.0"
+APP_VERSION = "2.1.0"
 
 
 # ── Export Dialog ─────────────────────────────────────────────────────────────
@@ -252,6 +253,27 @@ class MainWindow(QMainWindow):
         self._select_kf(self.animation.keyframes[0].id if self.animation.keyframes else None)
         self._refresh_all()
         self.animation.modified = False
+
+        DiscordRPCManager.get_instance().connect_async()
+        self._update_discord_rpc()
+
+    def _update_discord_rpc(self):
+        if not self.animation:
+            return
+        if self.animation.file_path:
+            proj_name = os.path.basename(self.animation.file_path)
+            if proj_name.endswith(".wa"):
+                proj_name = proj_name[:-3]
+        elif getattr(self.animation, "name", None) and self.animation.name != "Без названия":
+            proj_name = self.animation.name
+        else:
+            proj_name = "Новый проект"
+
+        kf_count = len(self.animation.keyframes) if self.animation else 0
+        win_count = len(self.animation.windows) if self.animation else 0
+        details = f"Проект: {proj_name}"
+        state = f"Кадров: {kf_count} | Окон: {win_count}"
+        DiscordRPCManager.get_instance().update_status(details, state)
 
     def _push_undo(self):
         snapshot = self.animation.to_dict()
@@ -485,6 +507,7 @@ class MainWindow(QMainWindow):
             return self._save_as()
         self.animation.save()
         self._update_title()
+        self._update_discord_rpc()
         self.status_bar.showMessage(f"Сохранено: {os.path.basename(self.animation.file_path)}")
 
     def _save_as(self):
@@ -494,6 +517,7 @@ class MainWindow(QMainWindow):
         if file_path:
             self.animation.save(file_path)
             self._update_title()
+            self._update_discord_rpc()
             self.status_bar.showMessage(f"Сохранено: {os.path.basename(file_path)}")
 
     # ── Keyframe & Window Handling ──────────────────────────────────────────
@@ -697,6 +721,7 @@ class MainWindow(QMainWindow):
         kf = self.animation.get_keyframe(self._selected_kf_id) if self._selected_kf_id else None
         self.stage.load(self.animation, kf)
         self._update_title()
+        self._update_discord_rpc()
 
     def _update_title(self):
         mod = " •" if self.animation.modified else ""
@@ -717,6 +742,7 @@ class MainWindow(QMainWindow):
         AboutDialog(self).exec()
 
     def closeEvent(self, event):
+        DiscordRPCManager.get_instance().close()
         if self.animation.modified:
             reply = QMessageBox.question(
                 self, "Выход", "Сохранить проект перед выходом?",
@@ -731,6 +757,7 @@ class MainWindow(QMainWindow):
 
 
 # ── About Dialog ──────────────────────────────────────────────────────────────
+
 
 class AboutDialog(QDialog):
     def __init__(self, parent=None):
@@ -817,6 +844,9 @@ class WelcomeDialog(QDialog):
         self.setFixedSize(580, 420)
         self.setWindowFlags(Qt.WindowType.Dialog | Qt.WindowType.WindowTitleHint | Qt.WindowType.WindowCloseButtonHint)
         self.action = self.ACTION_NONE
+
+        DiscordRPCManager.get_instance().connect_async()
+        DiscordRPCManager.get_instance().update_status("Стартовое меню", "")
 
         icon_path = os.path.join(os.path.dirname(__file__), "windownimator.ico")
         if os.path.exists(icon_path):

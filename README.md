@@ -2,11 +2,11 @@
 
 # Windownimator 2.0
 
-![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) ![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue) ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white) ![Status Release](https://img.shields.io/badge/Status-v2.0.0-green?style=for-the-badge) ![GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)
+![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white) ![Python](https://img.shields.io/badge/Python-FFD43B?style=for-the-badge&logo=python&logoColor=blue) ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white) ![Status Release](https://img.shields.io/badge/Status-v2.1.0-green?style=for-the-badge) ![GPLv3](https://img.shields.io/badge/License-GPLv3-blue.svg?style=for-the-badge)
 
 > [!NOTE]
-> **КРУПНОЕ ОБНОВЛЕНИЕ: ВЕРСИЯ 2.0.0**  
-> Релиз крупного обновления Windownimator 2.0 с новым интерфейсом, поддержкой мульти-выделения, системой отмены действий (`Ctrl+Z`), пресетами тем и новым мастером старта.
+> **ОБНОВЛЕНИЕ: ВЕРСИЯ 2.1.0 (DISCORD RICH PRESENCE)**  
+> Добавлена встроенная интеграция Discord Rich Presence, поддержка отслеживания названий проектов, кадров, времени работы и статуса стартового меню.
 
 Windownimator — мощный графический редактор и движок для создания интерактивных анимаций из системных диалоговых окон Windows (`MessageBoxW`).
 
@@ -14,37 +14,21 @@ Windownimator — мощный графический редактор и дви
 
 ![ВОЗМОЖНОСТИ](assets/features_header.jpg)
 
-### Что нового в Windownimator 2.0.0:
+### Что нового в Windownimator 2.1.0:
 
+- 🎮 **Интеграция Discord Rich Presence (RPC)**: Динамическое отображение статуса работы в вашем профиле Discord (имя проекта, количество кадров, окон и таймер активности).
 - 🚀 **Приветственный мастер старта (`WelcomeDialog`)**: Быстрый запуск для создания новой анимации или открытия существующих файлов `.wa`.
 - 🎨 **Смена тем и цвета редактора**: Переключение готовых палитр и тем оформления интерфейса (*Вид -> Тема оформления*) с автоматическим сохранением выбранного цвета и стиля между перезапусками.
 - ⚡ **Мульти-выделение окон (`Ctrl + Клик`)**: Выделение сразу нескольких окон на холсте и панелях с массовым редактированием заголовков, текстов, иконок и звуков.
 - ↺ **История изменений и Undo (`Ctrl + Z`)**: Полноценный 50-шаговый стек отмены любых действий, включая перемещения окон и изменения настроек кадров.
 - 🗑️ **Горячие клавиши удаления (`Backspace`)**: Быстрое удаление одного или группы выделенных окон нажатием одной клавиши.
 - 📁 **Автоматическая папка проектов**: Проекты по умолчанию сохраняются и открываются в каталоге `Documents/windownimator_projects`.
-- 📦 **Полноценный установщик Windows**: Удобный инсталлятор `Windownimator_v2.0.0_Setup.exe` с выгрузкой в Program Files и ярлыками.
+- 📦 **Полноценный установщик Windows**: Инсталлятор `Windownimator_v2.1.0_Setup.exe` с выгрузкой в Program Files и ярлыками.
 - ℹ️ **Окно «О программе»**: Быстрый доступ к информации о релизе и прямой ссылке на открытый репозиторий GitHub.
-
-## Подробный список изменений v2.0.0
-
-### 🛠️ Добавлено и пропатчено:
-- **Приветственный мастер старта (`WelcomeDialog`)**: Быстрый выбор создания нового проекта или открытия файлов `.wa`, нативная системная плашка Windows с крестиком закрытия, фоновый баннер и строгое оформление `#232323`.
-- **Мульти-выделение окон (`Ctrl + Клик`)**: Выделение нескольких окон на холсте и в списке с массовым редактированием параметров (заголовки, тексты, иконки, кнопки, звуки, сглаживание).
-- **История изменений Undo (`Ctrl + Z`)**: 50-шаговый стек отмены любых действий, включая фиксацию перемещений окон в момент зажатия мыши.
-- **Горячие клавиши удаления (`Backspace`)**: Быстрое удаление выделенных окон.
-- **Сохранение тем оформления**: Автоматическое сохранение выбранной цветовой схемы редактора между сессиями (`QSettings`).
-- **Дефолтная папка проектов**: Автоматическое создание и использование каталога `Documents/windownimator_projects`.
-- **Официальный инсталлятор (`Windownimator_v2.0.0_Setup.exe`)**: Автоматическая установка программы с возможностью удаления через Windows.
-- **Окно «О программе»**: Диалог в меню *Справка -> О программе...* со ссылкой на GitHub-репозиторий.
-
-### ❌ Убрано:
-- Удалены дублирующие кнопки с панели инструментов (оставлена только кнопка *«Проиграть анимацию»*).
-- Удален пункт *«Сохранить как...»* из меню *Файл*.
-- Удалено предупреждение о неразвернутом окне из заголовка приложения.
 
 ## Быстрый запуск (.exe)
 
-Скачайте инсталлятор **`Windownimator_v2.0.0_Setup.exe`** или портативную верcию **`Windownimator_v2.0.0.exe`** со страницы [Releases](https://github.com/arsenjkin459g-source/windownimator/releases) и запустите.
+Скачайте инсталлятор **`Windownimator_v2.1.0_Setup.exe`** или портативную верcию **`Windownimator_v2.1.0.exe`** со страницы [Releases](https://github.com/arsenjkin459g-source/windownimator/releases).
 
 ### Сборка из исходного кода
 
